@@ -1,9 +1,11 @@
 import { pool } from "../db/db.js";
-async function createGroceryPurchase(req,res){
+async function createGroceryPurchase(req, res) {
 
-    const {item_id,household_id,user_id,quantity,unit,amount,notes}=req.body
-    try{
-        const result = await pool.query('INSERT INTO grocery_purchases (item_id,household_id,user_id,quantity,unit,amount,notes) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id', [item_id,household_id,user_id,quantity,unit,amount,notes])
+    const { item_id, user_id, quantity, unit, amount, notes } = req.body
+    try {
+        const household_id = req.household_id;
+
+        const result = await pool.query('INSERT INTO grocery_purchases (item_id,household_id,user_id,quantity,unit,amount,notes) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id', [item_id, household_id, user_id, quantity, unit, amount, notes])
         const id = result.rows[0].id
         res.status(201).json({ message: "grocery purchase created", id })
     } catch (err) {
@@ -11,14 +13,59 @@ async function createGroceryPurchase(req,res){
         res.status(500).json({ error: "server gone " })
     }
 }
-async function getGroceryPurchases(req,res){
-    const {household_id}=req.body
-    try{
-        const result = await pool.query('SELECT * FROM grocery_purchases gp inner join items i on gp.item_id=i.id where gp.household_id=$1', [household_id])
-        res.status(200).json(result.rows)
+async function getGroceryPurchases(req, res) {
+    console.log("woo ")
+    const household_id = req.household_id
+    try {
+        const result = await pool.query(
+            `
+  SELECT
+    gp.id AS purchase_id,
+    gp.quantity,
+    gp.unit,
+    gp.amount,
+    gp.price_per_unit,
+    gp.date,
+    gp.notes,
+    gp.created_at AS purchase_created_at,
+
+    i.id AS item_id,
+    i.name AS item_name,
+    i.default_unit,
+
+    gc.id AS category_id,
+    gc.name AS category_name
+
+  FROM grocery_purchases gp
+
+  INNER JOIN items i
+    ON gp.item_id = i.id
+
+  LEFT JOIN grocery_categories gc
+    ON i.category_id = gc.id
+
+  WHERE gp.household_id = $1
+
+  ORDER BY gp.date DESC
+  `,
+            [household_id]
+        ); res.status(200).json(result.rows)
     } catch (err) {
         console.error(err)
         res.status(500).json({ error: "server gone " })
     }
 }
-export {createGroceryPurchase,getGroceryPurchases}
+async function updateGroceryPurchase(req, res) {
+
+}
+async function removeGroceryPurchase(req, res) {
+    const { id } = req.params
+    try {
+        const result = await pool.query('DELETE FROM grocery_purchases where id=$1 AND  user_id=$2', [id, req.user.userId])
+        res.status(200).json({ message: "grocery purchase removed" })
+    } catch (err) {
+        console.error(err)
+        res.status(500).json({ error: "server gone " })
+    }
+}
+export { createGroceryPurchase, getGroceryPurchases, removeGroceryPurchase ,updateGroceryPurchase}
