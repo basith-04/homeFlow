@@ -5,6 +5,8 @@ import express from 'express'
 import cors from 'cors'
 import { authRouter } from './routes/authRouter.js'
 import { householdRouter } from './routes/householdRouter.js'
+import { itemRouter } from './routes/itemRouter.js'
+import { groceryPurchasesRouter } from './routes/groceryPurchasesRouter.js'
 
 
 const app=express()
@@ -13,4 +15,6 @@ app.use(cors())
 app.use(express.json())
 app.use('/auth',authRouter)
 app.use('/household',householdRouter)
+app.use('/items',itemRouter)
+app.use('/grocery-purchases',groceryPurchasesRouter)
 app.listen(PORT,()=>console.log('server is running on the port',process.env.DB_NAME))
