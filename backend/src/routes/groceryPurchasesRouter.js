@@ -5,4 +5,4 @@ import { authMiddleware } from '../middleware/auth.js'
 export const groceryPurchasesRouter=express.Router()
 groceryPurchasesRouter.use(authMiddleware)
 groceryPurchasesRouter.post('/',createGroceryPurchase)
-groceryPurchasesRouter.get('/',getGroceryPurchases)
+groceryPurchasesRouter.post('/',getGroceryPurchases)
