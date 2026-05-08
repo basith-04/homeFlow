@@ -1,11 +1,11 @@
 import { pool } from "../db/db.js";
 async function createGroceryPurchase(req, res) {
 
-    const { item_id, user_id, quantity, unit, amount, notes } = req.body
+    const { item_id, quantity, unit, amount } = req.body
     try {
         const household_id = req.household_id;
-
-        const result = await pool.query('INSERT INTO grocery_purchases (item_id,household_id,user_id,quantity,unit,amount,notes) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id', [item_id, household_id, user_id, quantity, unit, amount, notes])
+        const user_id=req.user.userId
+        const result = await pool.query('INSERT INTO grocery_purchases (item_id,household_id,user_id,quantity,unit,amount) VALUES($1,$2,$3,$4,$5,$6) RETURNING id', [item_id, household_id, user_id, quantity, unit, amount])
         const id = result.rows[0].id
         res.status(201).json({ message: "grocery purchase created", id })
     } catch (err) {
@@ -23,18 +23,19 @@ async function getGroceryPurchases(req, res) {
     gp.id AS purchase_id,
     gp.quantity,
     gp.unit,
-    gp.amount,
-    gp.price_per_unit,
+    gp.amount AS totalPrice,
+    gp.price_per_unit AS unitPrice ,
     gp.date,
     gp.notes,
     gp.created_at AS purchase_created_at,
+    gp.user_id AS by,
 
     i.id AS item_id,
-    i.name AS item_name,
+    i.name AS item,
     i.default_unit,
 
     gc.id AS category_id,
-    gc.name AS category_name
+    gc.name AS category
 
   FROM grocery_purchases gp
 

@@ -28,17 +28,20 @@
  *     └─ AddEntry           — bottom sheet modal
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import PurchaseCard from "../components/PurchaseCard";
 import FilterBar from "../components/FilterBar";
 import FAB from "../components/FAB";
 import AddEntry from "../components/AddEntry";
 import { ArrowLeftIcon, FilterIcon } from "../icons/dashboardIcons";
+import { getGroceryPurchases } from "../services/groceryServices";
 
 // ─── Mock data ───────────────────────────────────────────────────────────────
 // In a real app these would come from a store / API call.
 // Each entry has a `bucket` field for easy filter matching.
+
+
 const MOCK_PURCHASES = [
   {
     id: 1,
@@ -252,7 +255,10 @@ function EmptyState() {
 
 // ─── GroceryPurchases — root export ──────────────────────────────────────────
 export default function GroceryPurchases() {
+
   const navigate = useNavigate();
+
+  const [groceryPurchases, setGroceryPurchases] = useState([])
 
   // Filter pill state — "All" | "This Week" | "This Month"
   const [activeFilter, setActiveFilter] = useState("All");
@@ -263,17 +269,29 @@ export default function GroceryPurchases() {
   // AddEntry bottom sheet — same pattern as Dashboard
   const [sheetOpen, setSheetOpen] = useState(false);
 
+
+
+  useEffect(() => {
+    console.log("reached 1 here")
+    fetchData()
+  }, [])
+  async function fetchData() {
+
+    const data = await getGroceryPurchases()
+    setGroceryPurchases(data)
+    console.log(data)
+  }
   // ── Derived: filtered + searched purchase list ──────────────────────────
   // 1. Apply date filter bucket first
   // 2. Then narrow by search query (case-insensitive substring on item name)
-  const displayedItems = applyFilter(MOCK_PURCHASES, activeFilter).filter((p) =>
+  const displayedItems = applyFilter(groceryPurchases, activeFilter).filter((p) =>
     p.item.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // ── Quick totals for SummaryStrip ────────────────────────────────────────
   const totalSpend = displayedItems.reduce((acc, p) => {
     // Strip "₹" and parse to number for summation
-    return acc + parseInt(p.totalPrice.replace("₹", ""), 10);
+    return acc + parseInt(p.totalprice.replace("₹", ""), 10);
   }, 0);
 
   return (
