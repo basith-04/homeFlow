@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { InputField } from "../components/InputField";
 import { EyeIcon, HouseIcon, LockIcon, MailIcon, TagIcon, UserIcon } from "../icons/authIcons";
-import { loginUser ,registerUser } from "../services/authServices";
+import { loginUser, registerUser } from "../services/authServices";
+import { useNavigate } from "react-router-dom";
 
 // ── Decorative blobs ────────────────────────────────────────────────────────
 
@@ -12,10 +13,12 @@ function BlobAccent({ className }) {
     />
   );
 }
- 
+
 // ── Auth Page ────────────────────────────────────────────────────────────────
 
 export default function Auth() {
+  const navigate = useNavigate();
+
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [animating, setAnimating] = useState(false);
@@ -37,10 +40,11 @@ export default function Auth() {
   async function handleSubmit() {
 
     if (isLogin) {
-      await loginUser({email, password});
+      await loginUser({ email, password });
       console.log("Logging in with", { email, password });
+      navigate('/')
     } else {
-      await registerUser({name,email,password})
+      await registerUser({ name, email, password })
       console.log("regitering user")
     }
   }
@@ -190,7 +194,7 @@ export default function Auth() {
                 ? "bg-[#3660F9] text-white hover:bg-[#2a50e0] shadow-lg shadow-[#3660F9]/30"
                 : "bg-[#D1FD57] text-[#17161A] hover:bg-[#bfee3a] shadow-lg shadow-[#D1FD57]/40"
               }
-            `} 
+            `}
             onClick={handleSubmit}
           >
             {isLogin ? "Login" : "Get Started"}
