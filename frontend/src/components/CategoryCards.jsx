@@ -1,3 +1,19 @@
+/**
+ * CategoryCards — Two summary cards: Groceries and General.
+ *
+ * ─── Props ─────────────────────────────────────────────────────────────────
+ *   categories    : array   — override default mock data (optional)
+ *   onGroceryClick: fn()    — called when the Groceries card is tapped.
+ *                             Dashboard passes navigate("/grocery") here.
+ *   onGeneralClick: fn()    — called when the General card is tapped (future).
+ *
+ * ─── How navigation works ──────────────────────────────────────────────────
+ *   Dashboard owns sheetOpen state AND navigation.
+ *   It passes onGroceryClick={()=> navigate("/grocery")} to this component.
+ *   CategoryCard calls it via its own onClick handler.
+ *   This keeps navigation logic in the page layer, not the card component.
+ */
+
 const CATEGORIES = [
   {
     id: "groceries",
@@ -19,11 +35,17 @@ const CATEGORIES = [
   },
 ];
 
-function CategoryCard({ emoji, label, amount, entries, accentColor, bgColor }) {
+/**
+ * CategoryCard — individual card.
+ * Receives onClick so the parent (CategoryCards) can route it by card id.
+ */
+function CategoryCard({ emoji, label, amount, entries, accentColor, bgColor, onClick }) {
   return (
     <div
+      onClick={onClick}
       className="flex-1 bg-white rounded-2xl p-4 shadow-sm border border-gray-100
-                 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
+                 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200
+                 cursor-pointer active:scale-[0.98]"
     >
       {/* Icon pill */}
       <div
@@ -48,16 +70,37 @@ function CategoryCard({ emoji, label, amount, entries, accentColor, bgColor }) {
       >
         {entries} entries
       </span>
+
+      {/* "View all →" hint on hover */}
+      <p className="text-[10px] mt-2 font-semibold" style={{ color: accentColor }}>
+        View all →
+      </p>
     </div>
   );
 }
 
-export default function CategoryCards({ categories = CATEGORIES }) {
+export default function CategoryCards({
+  categories = CATEGORIES,
+  onGroceryClick,
+  onGeneralClick,
+}) {
+  // Route click to the correct prop based on card id
+  function getClickHandler(id) {
+    if (id === "groceries" && onGroceryClick) return onGroceryClick;
+    if (id === "general" && onGeneralClick) return onGeneralClick;
+    return undefined;
+  }
+
   return (
     <div className="flex gap-3 mb-5">
       {categories.map((cat) => (
-        <CategoryCard key={cat.id} {...cat} />
+        <CategoryCard
+          key={cat.id}
+          {...cat}
+          onClick={getClickHandler(cat.id)}
+        />
       ))}
     </div>
   );
 }
+
