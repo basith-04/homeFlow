@@ -6,11 +6,17 @@
  *               Lifted here because both FAB (opener) and AddEntry (closer)
  *               need access to the same piece of state.
  *
+ * ─── Navigation ────────────────────────────────────────────────────────────
+ *   navigate("/grocery") is passed as onGroceryClick to CategoryCards.
+ *   When the user taps the Groceries card, CategoryCards calls this handler
+ *   and react-router navigates to the GroceryPurchases page.
+ *
  * ─── Component tree ────────────────────────────────────────────────────────
  *   Dashboard
  *     ├─ TopBar            — greeting, month, bell, avatar
  *     ├─ SpendCard         — big blue monthly total card
  *     ├─ CategoryCards     — Groceries + General side-by-side
+ *     │     └─ onGroceryClick → navigate("/grocery")
  *     ├─ RestockAlerts     — dashed coming-soon strip
  *     ├─ RecentActivity    — 5 mock activity items
  *     ├─ FAB               — fixed bottom-right "+", onClick → setSheetOpen(true)
@@ -18,6 +24,7 @@
  */
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import TopBar from "../components/TopBar";
 import SpendCard from "../components/SpendCard";
 import CategoryCards from "../components/CategoryCards";
@@ -29,6 +36,9 @@ import AddEntry from "../components/AddEntry";
 export default function Dashboard() {
   // Controls the AddEntry bottom sheet — passed as props to FAB and AddEntry
   const [sheetOpen, setSheetOpen] = useState(false);
+
+  // react-router navigate fn — used to go to /grocery on category card click
+  const navigate = useNavigate();
 
   return (
     // Full-screen lavender background, vertically scrollable
@@ -46,7 +56,8 @@ export default function Dashboard() {
         <SpendCard total="₹4,280" entries={12} />
 
         {/* 3. Category summary — Groceries & General side by side */}
-        <CategoryCards />
+        {/* onGroceryClick wires the Groceries card → /grocery navigation */}
+        <CategoryCards onGroceryClick={() => navigate("/grocery")} />
 
         {/* 4. Restock alerts — coming-soon dashed cards */}
         <RestockAlerts />
