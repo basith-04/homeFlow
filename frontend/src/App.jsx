@@ -1,7 +1,7 @@
-function App() {
- 
+import Auth from "./pages/Auth";
 
-  return <h1>homeFlow</h1>
+function App() {
+  return <Auth />;
 }
 
-export default App
+export default App;
