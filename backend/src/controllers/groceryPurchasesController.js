@@ -14,7 +14,6 @@ async function createGroceryPurchase(req, res) {
     }
 }
 async function getGroceryPurchases(req, res) {
-    console.log("woo ")
     const household_id = req.household_id
     try {
         const result = await pool.query(
@@ -23,8 +22,8 @@ async function getGroceryPurchases(req, res) {
     gp.id AS purchase_id,
     gp.quantity,
     gp.unit,
-    gp.amount AS totalPrice,
-    gp.price_per_unit AS unitPrice ,
+    gp.amount AS totalprice,
+    gp.price_per_unit AS unitprice ,
     gp.date,
     gp.notes,
     gp.created_at AS purchase_created_at,
@@ -50,7 +49,9 @@ async function getGroceryPurchases(req, res) {
   ORDER BY gp.date DESC
   `,
             [household_id]
-        ); res.status(200).json(result.rows)
+        ); 
+        res.status(200).json(result.rows)
+        
     } catch (err) {
         console.error(err)
         res.status(500).json({ error: "server gone " })
