@@ -26,18 +26,7 @@
 import { useState, useRef, useEffect } from "react";
 import { MoreVerticalIcon } from "../icons/dashboardIcons";
 
-export default function PurchaseCard({
-  item,
-  category,
-  quantity,
-  totalPrice,
-  unitPrice,
-  by,
-  when,
-  accentColor = "#3660F9",
-  tagColor = "#3660F9",
-  tagBg = "#EEF2FF",
-}) {
+export default function PurchaseCard(item) {
   // Controls the three-dot context menu dropdown
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -58,7 +47,7 @@ export default function PurchaseCard({
       className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4
                  hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
       // Colored left accent bar via border-left
-      style={{ borderLeft: `4px solid ${accentColor}` }}
+      style={{ borderLeft: `4px solid #3660F9` }}
     >
       {/* ── Top row: item info + amount + menu ── */}
       <div className="flex items-start justify-between gap-2">
@@ -66,22 +55,22 @@ export default function PurchaseCard({
         {/* Left: item name + category tag */}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-extrabold text-[#17161A] leading-snug truncate">
-            {item}
+            {item.item}
           </p>
           {/* Category pill */}
           <span
             className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
-            style={{ color: tagColor, backgroundColor: tagBg }}
+            style={{ color: "#3660F9", backgroundColor: "#EEF2FF" }}
           >
-            {category}
+            {item.category}
           </span>
         </div>
 
         {/* Right: amount + unit price + three-dot menu */}
         <div className="flex items-start gap-2 flex-shrink-0">
           <div className="text-right">
-            <p className="text-sm font-extrabold text-[#17161A]">{totalPrice}</p>
-            <p className="text-[11px] text-gray-400 font-medium mt-0.5">{unitPrice}</p>
+            <p className="text-sm font-extrabold text-[#17161A]">{item.totalprice}</p>
+            <p className="text-[11px] text-gray-400 font-medium mt-0.5">{item.unitprice}</p>
           </div>
 
           {/* Three-dot menu — positioned relatively so dropdown aligns below */}
@@ -137,14 +126,14 @@ export default function PurchaseCard({
         {/* Quantity badge */}
         <span
           className="text-[11px] font-bold px-2.5 py-0.5 rounded-full"
-          style={{ color: accentColor, backgroundColor: tagBg }}
+          style={{ color: "#3660F9", backgroundColor: "#EEF2FF" }}
         >
-          {quantity}
+          {item.quantity}
         </span>
 
         {/* Logged-by info */}
         <p className="text-[10px] text-gray-400 font-medium">
-          by {by} • {when}
+          by {item.by} • {"when"}
         </p>
       </div>
     </div>

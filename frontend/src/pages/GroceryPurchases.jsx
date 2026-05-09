@@ -272,7 +272,6 @@ export default function GroceryPurchases() {
 
 
   useEffect(() => {
-    console.log("reached 1 here")
     fetchData()
   }, [])
   async function fetchData() {
