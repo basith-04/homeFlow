@@ -55,14 +55,10 @@ import {
   TagIcon,
   SearchIcon,
 } from "../icons/dashboardIcons";
+import { getItems } from "../services/itemServices.js"
+import { addGroceryPurchase } from "../services/groceryServices.js";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
-
-/** Grocery autocomplete seed list */
-const GROCERY_SUGGESTIONS = [
-  "Tomato", "Milk", "Onion", "Rice", "Eggs", "Potato",
-  "Carrot", "Spinach", "Bread", "Butter", "Cheese", "Sugar",
-];
 
 /** Unit options for quantity field */
 const UNITS = ["kg", "L", "pcs", "g", "dozen", "ml", "pack"];
@@ -92,16 +88,27 @@ function todayISO() {
 // Renders: Item (with autocomplete), Quantity + Unit (row), Price, Date
 // ════════════════════════════════════════════════════════════════════════════
 function GroceryForm({ form, setForm }) {
+
+
   // Controls the visibility of the autocomplete dropdown
+  const [grocerySuggestions, setGrocerySuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const wrapperRef = useRef(null);
+  useEffect(() => {
+    fetchData()
+  }, [])
+  async function fetchData() {
+    const res = await getItems()
+    console.log("basith", res)
+    setGrocerySuggestions(res)
+
+  }
 
   // Filter suggestions based on current item input value (case-insensitive)
-  const filtered = GROCERY_SUGGESTIONS.filter((s) =>
-    s.toLowerCase().includes(form.item.toLowerCase())
+  let filtered = grocerySuggestions.filter((s) =>
+    s.name.toLowerCase().includes(form.item.toLowerCase())
   );
 
-  // Close dropdown when user clicks outside the autocomplete wrapper
   useEffect(() => {
     function handleClickOutside(e) {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target)) {
@@ -145,7 +152,7 @@ function GroceryForm({ form, setForm }) {
           >
             {filtered.map((s) => (
               <li
-                key={s}
+                key={s.id}
                 className="
                   px-4 py-2.5 text-sm text-gray-700 cursor-pointer
                   hover:bg-[#EEF2FF] hover:text-[#3660F9] transition-colors
@@ -153,12 +160,12 @@ function GroceryForm({ form, setForm }) {
                 "
                 // On select: fill the input and close the dropdown
                 onMouseDown={() => {
-                  setForm((f) => ({ ...f, item: s }));
+                  setForm((f) => ({ ...f, itemId: s.id, item: s.name, unit: s.default_unit }));
                   setShowSuggestions(false);
                 }}
               >
                 <span className="text-base">🛒</span>
-                {s}
+                {s.name}
               </li>
             ))}
           </ul>
@@ -206,8 +213,8 @@ function GroceryForm({ form, setForm }) {
           type="number"
           min="0"
           placeholder="0.00"
-          value={form.price}
-          onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+          value={form.amount}
+          onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
           className={INPUT_CLS}
         />
       </SheetField>
@@ -293,14 +300,15 @@ function GeneralForm({ form, setForm }) {
 // ════════════════════════════════════════════════════════════════════════════
 export default function AddEntry({ isOpen, onClose }) {
   // Which tab is active — drives form render and button color
-  const [activeTab, setActiveTab] = useState("grocery");
+  const [activeTab, setActiveTab] = useState("grocery");//grocery or general
 
   // ── Grocery form state ──────────────────────────────────────────────────
   const [groceryForm, setGroceryForm] = useState({
+    itemId: 0,
     item: "",
     quantity: "",
     unit: "kg",
-    price: "",
+    amount: "",
     groceryDate: todayISO(),
   });
 
@@ -315,15 +323,32 @@ export default function AddEntry({ isOpen, onClose }) {
   /**
    * handleLogIt — fires on "Log It ✓" press.
    * Logs the active form data to console.
-   * In a real app this would dispatch to a store / call an API.
+   * In a real app this would dispatch to a store / call an API.S
    */
-  function handleLogIt() {
+  async function handleLogIt() {
     const payload =
       activeTab === "grocery"
         ? { type: "grocery", ...groceryForm }
         : { type: "general", ...generalForm };
 
+    if (payload.type === "grocery" && groceryForm.itemId != 0) {
+
+      const res = await addGroceryPurchase(groceryForm)
+      if (res) {
+        setGroceryForm({
+          itemId: 0,
+          item: "",
+          quantity: "",
+          unit: "kg",
+          amount: "",
+          groceryDate: todayISO(),
+        })
+        onClose()
+      }
+
+    }
     console.log("[HomeFlow] New entry logged:", payload);
+
     onClose(); // close the sheet after logging
   }
 
@@ -448,15 +473,15 @@ export default function AddEntry({ isOpen, onClose }) {
             style={
               activeTab === "grocery"
                 ? {
-                    background: "linear-gradient(135deg,#3660F9,#2a50e0)",
-                    color: "#ffffff",
-                    boxShadow: "0 8px 24px rgba(54,96,249,0.35)",
-                  }
+                  background: "linear-gradient(135deg,#3660F9,#2a50e0)",
+                  color: "#ffffff",
+                  boxShadow: "0 8px 24px rgba(54,96,249,0.35)",
+                }
                 : {
-                    background: "#D1FD57",
-                    color: "#17161A",
-                    boxShadow: "0 8px 24px rgba(209,253,87,0.45)",
-                  }
+                  background: "#D1FD57",
+                  color: "#17161A",
+                  boxShadow: "0 8px 24px rgba(209,253,87,0.45)",
+                }
             }
           >
             Log It ✓
