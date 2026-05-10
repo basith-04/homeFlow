@@ -25,6 +25,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { MoreVerticalIcon } from "../icons/dashboardIcons";
+import { removeGroceryPurchase } from "../services/groceryServices";
 
 export default function PurchaseCard(item) {
   // Controls the three-dot context menu dropdown
@@ -106,7 +107,8 @@ export default function PurchaseCard(item) {
 
                 {/* Delete option */}
                 <button
-                  onClick={() => {
+                  onClick={async () => {
+                    const res= await removeGroceryPurchase(item.purchase_id)
                     console.log("[HomeFlow] Delete:", item);
                     setMenuOpen(false);
                   }}

@@ -36,7 +36,20 @@ async function editGroceryPurchase() {
 
 
 }
-async function removeGroceryPurchase() {
+async function removeGroceryPurchase(itemId) {
+    try {
+        const res = await authFetch(`${apiUrl}/grocery-purchases/${itemId}`, {
+            method: "DELETE"
+        })
+        if (!res.ok) {
+            const errorData = await res.json()
+            throw new Error(errorData.error || "failed")
+        }
+        return true
+    } catch (error) {
+        console.error("Error deleting grocery purchase:", error)
+        return false
+    }
 
 }
 export { getGroceryPurchases, addGroceryPurchase, removeGroceryPurchase, editGroceryPurchase }

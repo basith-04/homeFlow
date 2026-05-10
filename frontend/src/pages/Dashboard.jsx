@@ -23,7 +23,7 @@
  *     └─ AddEntry          — bottom sheet, isOpen=sheetOpen, onClose → setSheetOpen(false)
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import TopBar from "../components/TopBar";
 import SpendCard from "../components/SpendCard";
@@ -32,6 +32,7 @@ import RestockAlerts from "../components/RestockAlerts";
 import RecentActivity from "../components/RecentActivity";
 import FAB from "../components/FAB";
 import AddEntry from "../components/AddEntry";
+import { getGroceryPurchases } from "../services/groceryServices";
 
 export default function Dashboard() {
   // Controls the AddEntry bottom sheet — passed as props to FAB and AddEntry
@@ -39,7 +40,19 @@ export default function Dashboard() {
 
   // react-router navigate fn — used to go to /grocery on category card click
   const navigate = useNavigate();
-
+  const [groceryPurchases, setGroceryPurchases] = useState([]);
+  useEffect(() => {
+    fetchData()
+  }, [])
+  async function fetchData() {
+    const data = await getGroceryPurchases()
+    setGroceryPurchases(data)
+  }
+  const totalSpend = groceryPurchases.reduce((acc, p) => {
+    // Strip "₹" and parse to number for summation
+    return acc + parseInt(p.totalprice.replace("₹", ""), 10);
+  }, 0);
+  const totalEntries = groceryPurchases.length;
   return (
     // Full-screen lavender background, vertically scrollable
     <div
@@ -53,17 +66,17 @@ export default function Dashboard() {
         <TopBar name="Basith" month="May 2026" initials="BA" />
 
         {/* 2. Main spend card — blue gradient, total + budget bar */}
-        <SpendCard total="₹4,280" entries={12} />
+        <SpendCard total={totalSpend} entries={totalEntries} />
 
         {/* 3. Category summary — Groceries & General side by side */}
         {/* onGroceryClick wires the Groceries card → /grocery navigation */}
-        <CategoryCards onGroceryClick={() => navigate("/grocery")} />
+        <CategoryCards onGroceryClick={() => navigate("/grocery")} groceryData={{totalSpend,totalEntries}}/>
 
         {/* 4. Restock alerts — coming-soon dashed cards */}
         <RestockAlerts />
 
         {/* 5. Recent activity — 5 mock entries with colored left borders */}
-        <RecentActivity />
+        <RecentActivity groceryPurchases={groceryPurchases} />
       </div>
 
       {/* 6. FAB — fixed bottom-right; opens AddEntry sheet on click */}

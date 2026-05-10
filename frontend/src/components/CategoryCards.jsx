@@ -14,6 +14,8 @@
  *   This keeps navigation logic in the page layer, not the card component.
  */
 
+import { useState } from "react";
+
 const CATEGORIES = [
   {
     id: "groceries",
@@ -80,11 +82,12 @@ function CategoryCard({ emoji, label, amount, entries, accentColor, bgColor, onC
 }
 
 export default function CategoryCards({
-  categories = CATEGORIES,
+  groceryData,
   onGroceryClick,
   onGeneralClick,
 }) {
   // Route click to the correct prop based on card id
+
   function getClickHandler(id) {
     if (id === "groceries" && onGroceryClick) return onGroceryClick;
     if (id === "general" && onGeneralClick) return onGeneralClick;
@@ -93,13 +96,26 @@ export default function CategoryCards({
 
   return (
     <div className="flex gap-3 mb-5">
-      {categories.map((cat) => (
-        <CategoryCard
-          key={cat.id}
-          {...cat}
-          onClick={getClickHandler(cat.id)}
-        />
-      ))}
+      <CategoryCard
+        id="groceries"
+        emoji="🛒"
+        label="Groceries"
+        amount={groceryData.totalSpend}
+        entries={groceryData.totalEntries}
+        accentColor="#3660F9"
+        bgColor="#EEF2FF"
+        onClick={onGroceryClick}
+      />
+      <CategoryCard
+        id="general"
+        emoji="📋"
+        label="General"
+        amount="₹1,340"
+        entries="4"
+        accentColor="#7C3AED"
+        bgColor="#F5F3FF"
+        onClick={onGeneralClick}
+      />
     </div>
   );
 }
