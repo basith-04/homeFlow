@@ -10,11 +10,13 @@ import { groceryPurchasesRouter } from './routes/groceryPurchasesRouter.js'
 
 
 const app=express()
-const PORT=8000
+const PORT=process.env.PORT || 8080
 app.use(cors())
 app.use(express.json())
 app.use('/auth',authRouter)
 app.use('/household',householdRouter)
 app.use('/items',itemRouter)
 app.use('/grocery-purchases',groceryPurchasesRouter)
-app.listen(PORT,()=>console.log('server is running on the port',process.env.DB_NAME))
+app.listen(PORT, "0.0.0.0", () => {
+  console.log("server is running on the port", PORT);
+});
