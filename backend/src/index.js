@@ -13,6 +13,9 @@ const app=express()
 const PORT=process.env.PORT || 8080
 app.use(cors())
 app.use(express.json())
+app.get('/',(req,res)=>{
+    res.send('server is running')
+})
 app.use('/auth',authRouter)
 app.use('/household',householdRouter)
 app.use('/items',itemRouter)
