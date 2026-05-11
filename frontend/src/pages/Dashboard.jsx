@@ -33,12 +33,14 @@ import RecentActivity from "../components/RecentActivity";
 import FAB from "../components/FAB";
 import AddEntry from "../components/AddEntry";
 import { getGroceryPurchases } from "../services/groceryServices";
-
+import {jwtDecode} from "jwt-decode"
 export default function Dashboard() {
   // Controls the AddEntry bottom sheet — passed as props to FAB and AddEntry
   const [sheetOpen, setSheetOpen] = useState(false);
 
   // react-router navigate fn — used to go to /grocery on category card click
+
+  const userName=jwtDecode(localStorage.getItem("token")).userName
   const navigate = useNavigate();
   const [groceryPurchases, setGroceryPurchases] = useState([]);
   useEffect(() => {
@@ -52,6 +54,8 @@ export default function Dashboard() {
     // Strip "₹" and parse to number for summation
     return acc + parseInt(p.totalprice.replace("₹", ""), 10);
   }, 0);
+  const time = new Date().getTime();
+  console.log("Current time in ms:", time);
   const totalEntries = groceryPurchases.length;
   return (
     // Full-screen lavender background, vertically scrollable
@@ -63,7 +67,7 @@ export default function Dashboard() {
       <div className="mx-auto max-w-md px-4 pt-10 pb-6">
 
         {/* 1. Top bar — name greeting + bell + avatar */}
-        <TopBar name="Basith" month="May 2026" initials="BA" />
+        <TopBar name={userName} month="May 2026" initials="BA" />
 
         {/* 2. Main spend card — blue gradient, total + budget bar */}
         <SpendCard total={totalSpend} entries={totalEntries} />
