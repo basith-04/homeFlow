@@ -4,7 +4,7 @@ async function createGroceryPurchase(req, res) {
     const { item_id, quantity, unit, amount } = req.body
     try {
         const household_id = req.household_id;
-        const user_id=req.user.userId
+        const user_id=req.user.user_id
         const result = await pool.query('INSERT INTO grocery_purchases (item_id,household_id,user_id,quantity,unit,amount) VALUES($1,$2,$3,$4,$5,$6) RETURNING id', [item_id, household_id, user_id, quantity, unit, amount])
         const id = result.rows[0].id
         res.status(201).json({ message: "grocery purchase created", id })
@@ -63,7 +63,7 @@ async function updateGroceryPurchase(req, res) {
 async function removeGroceryPurchase(req, res) {
     const { id } = req.params
     try {
-        const result = await pool.query('DELETE FROM grocery_purchases where id=$1 AND  user_id=$2', [id, req.user.userId])
+        const result = await pool.query('DELETE FROM grocery_purchases where id=$1 AND  user_id=$2', [id, req.user.user_id])
         res.status(200).json({ message: "grocery purchase removed" })
     } catch (err) {
         console.error(err)
