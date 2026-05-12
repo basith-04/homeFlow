@@ -34,8 +34,10 @@ import PurchaseCard from "../components/PurchaseCard";
 import FilterBar from "../components/FilterBar";
 import FAB from "../components/FAB";
 import AddEntry from "../components/AddEntry";
-import { ArrowLeftIcon, FilterIcon } from "../icons/dashboardIcons";
 import { getGroceryPurchases } from "../services/groceryServices";
+import PageTopBar from "../components/PageTopBar";
+import SummaryStrip from "../components/SummaryStrip";
+import EmptyState from "../components/EmptyState";
 
 // ─── Mock data ───────────────────────────────────────────────────────────────
 // In a real app these would come from a store / API call.
@@ -170,90 +172,9 @@ function applyFilter(items, filter) {
   return items;
 }
 
-// ─── PageTopBar ───────────────────────────────────────────────────────────────
-// Separate inner component so the layout is readable at a glance.
-// Receives navigate fn + filter active state for the filter icon badge.
-function PageTopBar({ onBack, filterActive }) {
-  return (
-    <div className="flex items-center justify-between mb-5">
-      {/* Back button */}
-      <button
-        id="grocery-back-btn"
-        onClick={onBack}
-        className="w-9 h-9 rounded-xl bg-white border border-gray-100 shadow-sm
-                   flex items-center justify-center text-gray-600
-                   hover:border-[#3660F9]/30 hover:text-[#3660F9] transition-all duration-200"
-        aria-label="Go back"
-      >
-        <ArrowLeftIcon className="w-4 h-4" />
-      </button>
+// Components extracted to src/components/*
 
-      {/* Page title */}
-      <div className="text-center">
-        <h1 className="text-base font-extrabold text-[#17161A] tracking-tight">
-          Grocery Purchases
-        </h1>
-        <p className="text-[10px] text-gray-400 font-medium">May 2026</p>
-      </div>
-
-      {/* Filter icon — shows a blue dot badge when a non-All filter is active */}
-      <div className="relative">
-        <button
-          id="grocery-filter-btn"
-          className="w-9 h-9 rounded-xl bg-white border border-gray-100 shadow-sm
-                     flex items-center justify-center text-gray-600
-                     hover:border-[#3660F9]/30 hover:text-[#3660F9] transition-all duration-200"
-          aria-label="Filter options"
-        >
-          <FilterIcon className="w-4 h-4" />
-        </button>
-        {/* Active filter indicator dot */}
-        {filterActive && (
-          <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#3660F9] border-2 border-white" />
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── SummaryStrip ─────────────────────────────────────────────────────────────
-// Two quick-stat chips above the filter row — total entries + total spend.
-function SummaryStrip({ count, total }) {
-  return (
-    <div className="flex gap-3 mb-4">
-      {/* Entries count chip */}
-      <div className="flex-1 bg-white rounded-2xl p-3.5 border border-gray-100 shadow-sm text-center">
-        <p className="text-lg font-extrabold text-[#3660F9]">{count}</p>
-        <p className="text-[10px] text-gray-400 font-semibold mt-0.5">Entries</p>
-      </div>
-
-      {/* Total spend chip */}
-      <div className="flex-1 bg-white rounded-2xl p-3.5 border border-gray-100 shadow-sm text-center">
-        <p className="text-lg font-extrabold text-[#17161A]">{total}</p>
-        <p className="text-[10px] text-gray-400 font-semibold mt-0.5">Total Spend</p>
-      </div>
-
-      {/* Avg per entry chip */}
-      <div className="flex-1 bg-[#EEF2FF] rounded-2xl p-3.5 border border-[#3660F9]/10 text-center">
-        <p className="text-lg font-extrabold text-[#3660F9]">🛒</p>
-        <p className="text-[10px] text-gray-400 font-semibold mt-0.5">Grocery</p>
-      </div>
-    </div>
-  );
-}
-
-// ─── EmptyState ───────────────────────────────────────────────────────────────
-function EmptyState() {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <span className="text-5xl mb-4">🛒</span>
-      <p className="text-sm font-bold text-gray-400">No entries found</p>
-      <p className="text-xs text-gray-300 mt-1">Try a different filter or search term</p>
-    </div>
-  );
-}
-
-// ─── GeneralExpenses — root export ──────────────────────────────────────────
+// ─── GroceryPurchases — root export ──────────────────────────────────────────
 export default function GeneralExpenses() {
 
   const navigate = useNavigate();
@@ -292,7 +213,7 @@ export default function GeneralExpenses() {
     // Strip "₹" and parse to number for summation
     return acc + parseInt(p.totalprice.replace("₹", ""), 10);
   }, 0);
-
+  
   return (
     <div className="min-h-screen w-full" style={{ backgroundColor: "#EEF2FF" }}>
       {/* Centered, mobile-first container — same max-w-md as Dashboard */}

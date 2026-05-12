@@ -36,9 +36,9 @@ async function editGeneralExpense() {
 
 
 }
-async function removeGeneralExpense(itemId) {
+async function removeGeneralExpense(expenseId) {
     try {
-        const res = await authFetch(`${apiUrl}/general-expenses/${itemId}`, {
+        const res = await authFetch(`${apiUrl}/general-expenses/${expenseId}`, {
             method: "DELETE"
         })
         if (!res.ok) {
