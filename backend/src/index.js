@@ -7,6 +7,7 @@ import { authRouter } from './routes/authRouter.js'
 import { householdRouter } from './routes/householdRouter.js'
 import { itemRouter } from './routes/itemRouter.js'
 import { groceryPurchasesRouter } from './routes/groceryPurchasesRouter.js'
+import { generalExpensesRouter } from './routes/generalExpensesRouter.js'
 
 
 const app=express()
@@ -20,6 +21,7 @@ app.use('/auth',authRouter)
 app.use('/household',householdRouter)
 app.use('/items',itemRouter)
 app.use('/grocery-purchases',groceryPurchasesRouter)
+app.use('/general-expenses',generalExpensesRouter)
 app.listen(PORT, "0.0.0.0", () => {
   console.log("server is running on the port", PORT);
 });
