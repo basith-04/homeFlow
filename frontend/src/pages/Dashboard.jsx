@@ -74,7 +74,7 @@ export default function Dashboard() {
 
         {/* 3. Category summary — Groceries & General side by side */}
         {/* onGroceryClick wires the Groceries card → /grocery navigation */}
-        <CategoryCards onGroceryClick={() => navigate("/grocery")} groceryData={{totalSpend,totalEntries}}/>
+        <CategoryCards onGeneralClick={()=> navigate("/general")} onGroceryClick={() => navigate("/grocery")} groceryData={{totalSpend,totalEntries}}/>
 
         {/* 4. Restock alerts — coming-soon dashed cards */}
         <RestockAlerts />
