@@ -78,7 +78,7 @@ export default function Dashboard() {
         <TopBar name={userName} month="May 2026" initials="BA" />
 
         {/* 2. Main spend card — blue gradient, total + budget bar */}
-        <SpendCard total={totalSpend} entries={totalEntries} />
+        <SpendCard total={totalSpend+totalGeneralSpend} entries={totalEntries+totalGeneralEntries} />
 
         {/* 3. Category summary — Groceries & General side by side */}
         {/* onGroceryClick wires the Groceries card → /grocery navigation */}
