@@ -221,6 +221,7 @@ export default function GroceryPurchases() {
 
         {/* 1. Top bar — back arrow + title + filter icon */}
         <PageTopBar
+          pageTitle="Grocery Purchases"
           onBack={() => navigate(-1)}
           filterActive={activeFilter !== "All"}
         />

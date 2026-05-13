@@ -1,7 +1,8 @@
 import React from "react";
 import { ArrowLeftIcon, FilterIcon } from "../icons/dashboardIcons";
 
-export default function PageTopBar({ onBack, filterActive }) {
+export default function PageTopBar({ onBack, filterActive, pageTitle }) {
+  const date = new Date();
   return (
     <div className="flex items-center justify-between mb-5">
       {/* Back button */}
@@ -19,9 +20,9 @@ export default function PageTopBar({ onBack, filterActive }) {
       {/* Page title */}
       <div className="text-center">
         <h1 className="text-base font-extrabold text-[#17161A] tracking-tight">
-          Grocery Purchases
+          {pageTitle}
         </h1>
-        <p className="text-[10px] text-gray-400 font-medium">May 2026</p>
+        <p className="text-[10px] text-gray-400 font-medium">{date.toLocaleString('default', { month: 'long' })} {date.getFullYear()}</p>
       </div>
 
       {/* Filter icon — shows a blue dot badge when a non-All filter is active */}

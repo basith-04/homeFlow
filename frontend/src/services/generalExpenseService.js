@@ -13,13 +13,13 @@ async function getGeneralExpenses() {
 }
 
 async function addGeneralExpense(item) {
-    console.log(item)
+    
     const res = await authFetch(`${apiUrl}/general-expenses`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ category_id: item.categoryId, description: item.description, amount: item.amount })
+        body: JSON.stringify({ category_id: item.category, description: item.description, amount: item.amount,date: item.generalDate })
 
     })
 
@@ -52,4 +52,15 @@ async function removeGeneralExpense(expenseId) {
     }
 
 }
-export { getGeneralExpenses, addGeneralExpense, removeGeneralExpense, editGeneralExpense }
+async function getExpenseCategories() {
+
+    const res = await authFetch(`${apiUrl}/general-expenses/categories`)
+    if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.error || "Login failed")
+    }
+    const data = res.json()
+
+    return data
+}
+export { getGeneralExpenses, addGeneralExpense, removeGeneralExpense, editGeneralExpense, getExpenseCategories }
