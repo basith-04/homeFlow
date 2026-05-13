@@ -1,9 +1,9 @@
 import { pool } from "../db/db.js";
 async function createExpense(req, res) {
 
-    const { description, amount, category_id } = req.body
+    const { description, amount, category_id, date } = req.body
     try {
-        const result = await pool.query('INSERT INTO expenses (household_id,logged_by,description,amount,category_id) VALUES($1,$2,$3,$4,$5) RETURNING id', [req.household_id, req.user.user_id, description, amount, category_id])
+        const result = await pool.query('INSERT INTO expenses (household_id,logged_by,description,amount,category_id,date) VALUES($1,$2,$3,$4,$5,$6) RETURNING id', [req.household_id, req.user.user_id, description, amount, category_id, date])
         const id = result.rows[0].id
         res.status(201).json({ message: "expense created", id })
     } catch (err) {
