@@ -57,6 +57,7 @@ export function ExpenseCard(item) {
           <p className="mt-1 text-[11px] text-gray-400 font-medium truncate">
             {item.description}
           </p>
+          
         </div>
 
         {/* Right: amount + three-dot menu */}
@@ -108,16 +109,19 @@ export function ExpenseCard(item) {
                 >
                   🗑️ Delete
                 </button>
+                
               </div>
             )}
+            
           </div>
+          
         </div>
       </div>
 
       {/* ── Bottom row: date right-aligned ── */}
       <div className="flex items-center justify-end mt-2.5 pt-2.5 border-t border-gray-50">
         <p className="text-[10px] text-gray-400 font-medium">
-          {item.when}
+          {item.date.slice(0, 10)}
         </p>
       </div>
     </div>
