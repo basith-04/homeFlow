@@ -1,11 +1,11 @@
 import { pool } from "../db/db.js";
 async function createGroceryPurchase(req, res) {
 
-    const { item_id, quantity, unit, amount } = req.body
+    const { item_id, quantity, unit, amount,date } = req.body
     try {
         const household_id = req.household_id;
         const user_id=req.user.user_id
-        const result = await pool.query('INSERT INTO grocery_purchases (item_id,household_id,user_id,quantity,unit,amount) VALUES($1,$2,$3,$4,$5,$6) RETURNING id', [item_id, household_id, user_id, quantity, unit, amount])
+        const result = await pool.query('INSERT INTO grocery_purchases (item_id,household_id,user_id,quantity,unit,amount,date) VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id', [item_id, household_id, user_id, quantity, unit, amount, date])
         const id = result.rows[0].id
         res.status(201).json({ message: "grocery purchase created", id })
     } catch (err) {
