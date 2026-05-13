@@ -1,9 +1,9 @@
 /**
- * GroceryPurchases — Full list view of logged grocery entries.
+ * GeneralExpenses — Full list view of logged general expenses.
  *
  * ─── Navigation ────────────────────────────────────────────────────────────
- *   Route: /grocery
- *   Entry point: Dashboard → CategoryCards (Groceries card) → navigate("/grocery")
+ *   Route: /general
+ *   Entry point: Dashboard → CategoryCards (General Expenses card) → navigate("/general")
  *   Back: TopBar back arrow → navigate(-1)  [browser history]
  *
  * ─── State ─────────────────────────────────────────────────────────────────
@@ -18,8 +18,8 @@
  *                    for this scale of mock data).
  *
  * ─── Component tree ────────────────────────────────────────────────────────
- *   GroceryPurchases
- *     ├─ PageTopBar         — back arrow + "Grocery Purchases" + filter icon
+ *   GeneralExpenses
+ *     ├─ PageTopBar         — back arrow + "General Expenses" + filter icon
  *     ├─ SummaryStrip       — quick totals (entries count + total spend)
  *     ├─ FilterBar          — pill tabs + search input
  *     ├─ List of PurchaseCard — one per displayedItems entry
@@ -34,130 +34,12 @@ import PurchaseCard from "../components/PurchaseCard";
 import FilterBar from "../components/FilterBar";
 import FAB from "../components/FAB";
 import AddEntry from "../components/AddEntry";
-import { getGroceryPurchases } from "../services/groceryServices";
 import PageTopBar from "../components/PageTopBar";
 import SummaryStrip from "../components/SummaryStrip";
 import EmptyState from "../components/EmptyState";
+import { getGeneralExpenses } from "../services/generalExpenseService";
+import {ExpenseCard} from "../components/ExpenseCard.jsx";
 
-// ─── Mock data ───────────────────────────────────────────────────────────────
-// In a real app these would come from a store / API call.
-// Each entry has a `bucket` field for easy filter matching.
-
-
-const MOCK_PURCHASES = [
-  {
-    id: 1,
-    item: "Tomato",
-    category: "Vegetable",
-    quantity: "2 kg",
-    totalPrice: "₹60",
-    unitPrice: "₹30/kg",
-    by: "Basith",
-    when: "Today",
-    bucket: "This Week",          // "This Week" also belongs to "This Month"
-    accentColor: "#3660F9",
-    tagColor: "#3660F9",
-    tagBg: "#EEF2FF",
-  },
-  {
-    id: 2,
-    item: "Milk",
-    category: "Dairy",
-    quantity: "1 L",
-    totalPrice: "₹28",
-    unitPrice: "₹28/L",
-    by: "Basith",
-    when: "Today",
-    bucket: "This Week",
-    accentColor: "#0EA5E9",
-    tagColor: "#0EA5E9",
-    tagBg: "#F0F9FF",
-  },
-  {
-    id: 3,
-    item: "Rice",
-    category: "Grain",
-    quantity: "5 kg",
-    totalPrice: "₹320",
-    unitPrice: "₹64/kg",
-    by: "Basith",
-    when: "Yesterday",
-    bucket: "This Week",
-    accentColor: "#F59E0B",
-    tagColor: "#B45309",
-    tagBg: "#FFFBEB",
-  },
-  {
-    id: 4,
-    item: "Eggs",
-    category: "Poultry",
-    quantity: "1 dozen",
-    totalPrice: "₹84",
-    unitPrice: "₹7/egg",
-    by: "Basith",
-    when: "Yesterday",
-    bucket: "This Week",
-    accentColor: "#F97316",
-    tagColor: "#C2410C",
-    tagBg: "#FFF7ED",
-  },
-  {
-    id: 5,
-    item: "Onion",
-    category: "Vegetable",
-    quantity: "3 kg",
-    totalPrice: "₹75",
-    unitPrice: "₹25/kg",
-    by: "Basith",
-    when: "3 days ago",
-    bucket: "This Week",
-    accentColor: "#A855F7",
-    tagColor: "#7E22CE",
-    tagBg: "#FAF5FF",
-  },
-  {
-    id: 6,
-    item: "Potato",
-    category: "Vegetable",
-    quantity: "2 kg",
-    totalPrice: "₹40",
-    unitPrice: "₹20/kg",
-    by: "Basith",
-    when: "4 days ago",
-    bucket: "This Week",
-    accentColor: "#10B981",
-    tagColor: "#065F46",
-    tagBg: "#ECFDF5",
-  },
-  {
-    id: 7,
-    item: "Spinach",
-    category: "Leafy Green",
-    quantity: "1 kg",
-    totalPrice: "₹35",
-    unitPrice: "₹35/kg",
-    by: "Basith",
-    when: "Last week",
-    bucket: "This Month",         // older than this week but within month
-    accentColor: "#22C55E",
-    tagColor: "#15803D",
-    tagBg: "#F0FDF4",
-  },
-  {
-    id: 8,
-    item: "Bread",
-    category: "Bakery",
-    quantity: "2 pcs",
-    totalPrice: "₹80",
-    unitPrice: "₹40/pc",
-    by: "Basith",
-    when: "10 days ago",
-    bucket: "This Month",
-    accentColor: "#F43F5E",
-    tagColor: "#BE123C",
-    tagBg: "#FFF1F2",
-  },
-];
 
 // ─── Filter logic ─────────────────────────────────────────────────────────────
 // "All" → no date filter
@@ -174,12 +56,12 @@ function applyFilter(items, filter) {
 
 // Components extracted to src/components/*
 
-// ─── GroceryPurchases — root export ──────────────────────────────────────────
+// ─── GeneralExpenses — root export ──────────────────────────────────────────
 export default function GeneralExpenses() {
 
   const navigate = useNavigate();
 
-  const [groceryPurchases, setGroceryPurchases] = useState([])
+  const [generalExpenses, setGeneralExpenses] = useState([])
 
   // Filter pill state — "All" | "This Week" | "This Month"
   const [activeFilter, setActiveFilter] = useState("All");
@@ -197,21 +79,21 @@ export default function GeneralExpenses() {
   }, [])
   async function fetchData() {
 
-    const data = await getGroceryPurchases()
-    setGroceryPurchases(data)
+    const data = await getGeneralExpenses()
+    setGeneralExpenses(data)
     console.log(data)
   }
   // ── Derived: filtered + searched purchase list ──────────────────────────
   // 1. Apply date filter bucket first
   // 2. Then narrow by search query (case-insensitive substring on item name)
-  const displayedItems = applyFilter(groceryPurchases, activeFilter).filter((p) =>
-    p.item.toLowerCase().includes(searchQuery.toLowerCase())
+  const displayedItems = applyFilter(generalExpenses, activeFilter).filter((p) =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // ── Quick totals for SummaryStrip ────────────────────────────────────────
   const totalSpend = displayedItems.reduce((acc, p) => {
     // Strip "₹" and parse to number for summation
-    return acc + parseInt(p.totalprice.replace("₹", ""), 10);
+    return acc + parseInt(p.amount.replace("₹", ""), 10);
   }, 0);
   
   return (
@@ -221,6 +103,7 @@ export default function GeneralExpenses() {
 
         {/* 1. Top bar — back arrow + title + filter icon */}
         <PageTopBar
+          pageTitle="General Expenses"
           onBack={() => navigate(-1)}
           filterActive={activeFilter !== "All"}
         />
@@ -245,7 +128,7 @@ export default function GeneralExpenses() {
           <div className="flex flex-col gap-3">
             {displayedItems.map((p) => (
               // PurchaseCard manages its own menuOpen state internally
-              <PurchaseCard key={p.id} {...p} />
+              <ExpenseCard key={p.id} {...p} />
             ))}
           </div>
         ) : (
@@ -257,7 +140,7 @@ export default function GeneralExpenses() {
       {/* 6. FAB — same as Dashboard, opens AddEntry sheet */}
       <FAB onClick={() => setSheetOpen(true)} />
 
-      {/* 7. AddEntry sheet — reused from Dashboard, defaults to grocery tab */}
+      {/* 7. AddEntry sheet — reused from Dashboard, defaults to general tab */}
       <AddEntry
         isOpen={sheetOpen}
         onClose={() => setSheetOpen(false)}
