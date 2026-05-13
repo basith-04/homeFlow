@@ -57,16 +57,12 @@ import {
 } from "../icons/dashboardIcons";
 import { getItems } from "../services/itemServices.js"
 import { addGroceryPurchase } from "../services/groceryServices.js";
+import { addGeneralExpense, getExpenseCategories } from "../services/generalExpenseService.js";
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
 /** Unit options for quantity field */
 const UNITS = ["kg", "L", "pcs", "g", "dozen", "ml", "pack"];
-
-/** Expense categories for General tab */
-const EXPENSE_CATEGORIES = [
-  "Food", "Transport", "Utilities", "Medical", "Shopping", "Other",
-];
 
 // ─── Shared input className ─────────────────────────────────────────────────
 // All <input> and <select> elements share this class string for visual consistency.
@@ -238,6 +234,14 @@ function GroceryForm({ form, setForm }) {
 // Renders: Description, Amount, Category select, Date
 // ════════════════════════════════════════════════════════════════════════════
 function GeneralForm({ form, setForm }) {
+  const [expenseCategories, setExpenseCategories] = useState([]);
+  useEffect(() => {
+    fetchCategories()
+  }, [])
+  async function fetchCategories() {
+    const res = await getExpenseCategories()
+    setExpenseCategories(res)
+  }
   return (
     <div className="flex flex-col gap-4">
 
@@ -271,11 +275,11 @@ function GeneralForm({ form, setForm }) {
         <select
           id="entry-category"
           value={form.category}
-          onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
+          onChange={(e) => setForm((f) => ({ ...f, category: e.target.value}))}
           className={INPUT_CLS + " cursor-pointer"}
         >
-          {EXPENSE_CATEGORIES.map((c) => (
-            <option key={c} value={c}>{c}</option>
+          {expenseCategories.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </select>
       </SheetField>
@@ -316,8 +320,8 @@ export default function AddEntry({ isOpen, onClose }) {
   const [generalForm, setGeneralForm] = useState({
     description: "",
     amount: "",
-    category: "Food",
-    generalDate: todayISO(),
+    category: 1,
+    generalDate: todayISO()
   });
 
   /**
@@ -346,6 +350,18 @@ export default function AddEntry({ isOpen, onClose }) {
         onClose()
       }
 
+    }
+    else if (payload.type === "general") {
+      const res = await addGeneralExpense(generalForm)
+      if (res) {
+        setGeneralForm({
+          description: "",
+          amount: "",
+          category: 1,
+          generalDate: todayISO(),
+        })
+        onClose()
+      }
     }
     console.log("[HomeFlow] New entry logged:", payload);
 
