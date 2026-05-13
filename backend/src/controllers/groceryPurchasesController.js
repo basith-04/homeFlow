@@ -24,7 +24,7 @@ async function getGroceryPurchases(req, res) {
     gp.unit,
     gp.amount AS totalprice,
     gp.price_per_unit AS unitprice ,
-    gp.date,
+    TO_CHAR(gp.date, 'YYYY-MM-DD') AS date,
     gp.notes,
     gp.created_at AS purchase_created_at,
     gp.user_id AS by,
