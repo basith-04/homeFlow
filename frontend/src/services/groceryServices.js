@@ -19,7 +19,7 @@ async function addGroceryPurchase(item) {
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ item_id: item.itemId, quantity: item.quantity, amount: item.amount, unit: item.unit })
+        body: JSON.stringify({ item_id: item.itemId, quantity: item.quantity, amount: item.amount, unit: item.unit ,date:item.groceryDate})
 
     })
 

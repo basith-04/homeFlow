@@ -135,7 +135,7 @@ export default function PurchaseCard(item) {
 
         {/* Logged-by info */}
         <p className="text-[10px] text-gray-400 font-medium">
-          by {item.by} • {"when"}
+          by {item.by} • {item.date.slice(0, 10)}
         </p>
       </div>
     </div>

@@ -82,7 +82,7 @@ function ActivityItem({ groceryPurchase }) {
             {groceryPurchase.category}
           </span>
           <span className="text-[10px] text-gray-400 font-medium">
-            by {groceryPurchase.by} • {"when"}
+            by {groceryPurchase.by} • {groceryPurchase.date.slice(0, 10)}
           </span>
         </div>
       </div>
