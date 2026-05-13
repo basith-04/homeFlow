@@ -34,6 +34,7 @@ import FAB from "../components/FAB";
 import AddEntry from "../components/AddEntry";
 import { getGroceryPurchases } from "../services/groceryServices";
 import {jwtDecode} from "jwt-decode"
+import { getGeneralExpenses } from "../services/generalExpenseService";
 export default function Dashboard() {
   // Controls the AddEntry bottom sheet — passed as props to FAB and AddEntry
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -43,20 +44,27 @@ export default function Dashboard() {
   const userName=jwtDecode(localStorage.getItem("token")).userName
   const navigate = useNavigate();
   const [groceryPurchases, setGroceryPurchases] = useState([]);
+  const [generalExpenses, setGeneralExpenses] = useState([]);
   useEffect(() => {
     fetchData()
   }, [])
   async function fetchData() {
     const data = await getGroceryPurchases()
+    const generalData = await getGeneralExpenses()
+    setGeneralExpenses(generalData)
     setGroceryPurchases(data)
   }
   const totalSpend = groceryPurchases.reduce((acc, p) => {
     // Strip "₹" and parse to number for summation
     return acc + parseInt(p.totalprice.replace("₹", ""), 10);
   }, 0);
+  const totalGeneralSpend = generalExpenses.reduce((acc, p) => {
+    return acc + parseInt(p.amount.replace("₹", ""), 10);
+  }, 0);
   const time = new Date().getTime();
   console.log("Current time in ms:", time);
   const totalEntries = groceryPurchases.length;
+  const totalGeneralEntries = generalExpenses.length;
   return (
     // Full-screen lavender background, vertically scrollable
     <div
@@ -74,7 +82,9 @@ export default function Dashboard() {
 
         {/* 3. Category summary — Groceries & General side by side */}
         {/* onGroceryClick wires the Groceries card → /grocery navigation */}
-        <CategoryCards onGeneralClick={()=> navigate("/general")} onGroceryClick={() => navigate("/grocery")} groceryData={{totalSpend,totalEntries}}/>
+        <CategoryCards 
+          onGeneralClick={()=> navigate("/general")}  generalData={{totalGeneralSpend,totalGeneralEntries}}
+          onGroceryClick={() => navigate("/grocery")} groceryData={{totalSpend,totalEntries}}/>
 
         {/* 4. Restock alerts — coming-soon dashed cards */}
         <RestockAlerts />
