@@ -24,4 +24,25 @@ async function getExpenses(req, res) {
     }
 }
 
-export { createExpense, getExpenses }
+async function getExpenseCategories(req, res) {
+    try {
+        const result = await pool.query('SELECT * FROM expense_categories')
+        res.status(200).json(result.rows)
+    } catch (err) {
+        console.error(err)
+        res.status(500).json({ error: "server gone " })
+    }
+}
+
+async function deleteExpense(req, res) {
+    const expense_id = req.params.id
+    try {
+        await pool.query('DELETE FROM expenses WHERE id=$1 && user_id=$2', [expense_id, req.user.user_id])
+        res.status(200).json({ message: "expense deleted" })
+    } catch (err) {
+        console.error(err)
+        res.status(500).json({ error: "server gone " })
+    }
+}
+
+export { createExpense, getExpenses, getExpenseCategories, deleteExpense }
