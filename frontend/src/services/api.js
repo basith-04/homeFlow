@@ -10,6 +10,7 @@ async function authFetch(url, options = {}) {
 
     if (res.status === 401) {
         localStorage.removeItem("token");
+        console.log("Unauthorized, redirecting to login")
         window.location.href = "/auth";
         return;
     }
