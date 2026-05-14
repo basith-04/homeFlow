@@ -16,7 +16,7 @@ async function getExpenses(req, res) {
     const household_id = req.household_id;
     try {
         console.log("frrrr")
-        const result = await pool.query('SELECT ex.id,ex.logged_by as user_id,ex.category_id,ec.name,ex.description,ex.amount,ex.date FROM expenses ex INNER JOIN expense_categories ec on ex.category_id=ec.id where household_id=$1', [household_id])
+        const result = await pool.query(`SELECT ex.id,ex.logged_by as user_id,ex.category_id,ec.name,ex.description,ex.amount,TO_CHAR(ex.date,'YYYY-MM-DD') AS date FROM expenses ex INNER JOIN expense_categories ec on ex.category_id=ec.id where household_id=$1`, [household_id])
         res.status(200).json(result.rows)
     } catch (err) {
         console.error(err)
