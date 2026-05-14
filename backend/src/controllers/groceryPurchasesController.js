@@ -58,7 +58,21 @@ async function getGroceryPurchases(req, res) {
     }
 }
 async function updateGroceryPurchase(req, res) {
-
+    const { id } = req.params;
+    const { item_id, quantity, unit, amount, date } = req.body;
+    try {
+        const result = await pool.query(
+            'UPDATE grocery_purchases SET item_id=$1, quantity=$2, unit=$3, amount=$4, date=$5 WHERE id=$6 AND user_id=$7 RETURNING id',
+            [item_id, quantity, unit, amount, date, id, req.user.user_id]
+        );
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Purchase not found or not authorized' });
+        }
+        res.status(200).json({ message: 'grocery purchase updated', id: result.rows[0].id });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'server gone' });
+    }
 }
 async function removeGroceryPurchase(req, res) {
     const { id } = req.params

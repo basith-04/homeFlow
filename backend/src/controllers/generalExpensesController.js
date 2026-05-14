@@ -34,10 +34,28 @@ async function getExpenseCategories(req, res) {
     }
 }
 
+async function updateExpense(req, res) {
+    const expense_id = req.params.id;
+    const { description, amount, category_id, date } = req.body;
+    try {
+        const result = await pool.query(
+            'UPDATE expenses SET description=$1, amount=$2, category_id=$3, date=$4 WHERE id=$5 AND logged_by=$6 RETURNING id',
+            [description, amount, category_id, date, expense_id, req.user.user_id]
+        );
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Expense not found or not authorized' });
+        }
+        res.status(200).json({ message: 'expense updated', id: result.rows[0].id });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'server gone' });
+    }
+}
+
 async function deleteExpense(req, res) {
     const expense_id = req.params.id
     try {
-        await pool.query('DELETE FROM expenses WHERE id=$1 && user_id=$2', [expense_id, req.user.user_id])
+        await pool.query('DELETE FROM expenses WHERE id=$1 AND logged_by=$2', [expense_id, req.user.user_id])
         res.status(200).json({ message: "expense deleted" })
     } catch (err) {
         console.error(err)
@@ -45,4 +63,4 @@ async function deleteExpense(req, res) {
     }
 }
 
-export { createExpense, getExpenses, getExpenseCategories, deleteExpense }
+export { createExpense, getExpenses, getExpenseCategories, deleteExpense, updateExpense }
