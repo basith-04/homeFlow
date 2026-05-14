@@ -32,9 +32,28 @@ async function addGroceryPurchase(item) {
 
 
 }
-async function editGroceryPurchase() {
-
-
+async function editGroceryPurchase(purchaseId, item) {
+    try {
+        const res = await authFetch(`${apiUrl}/grocery-purchases/${purchaseId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                item_id: item.itemId,
+                quantity: item.quantity,
+                amount: item.amount,
+                unit: item.unit,
+                date: item.groceryDate,
+            })
+        });
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.error || "Update failed");
+        }
+        return true;
+    } catch (error) {
+        console.error("Error updating grocery purchase:", error);
+        return false;
+    }
 }
 async function removeGroceryPurchase(itemId) {
     try {

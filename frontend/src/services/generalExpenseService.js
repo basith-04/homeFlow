@@ -32,9 +32,27 @@ async function addGeneralExpense(item) {
 
 
 }
-async function editGeneralExpense() {
-
-
+async function editGeneralExpense(expenseId, item) {
+    try {
+        const res = await authFetch(`${apiUrl}/general-expenses/${expenseId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                category_id: item.category,
+                description: item.description,
+                amount: item.amount,
+                date: item.generalDate,
+            })
+        });
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.error || "Update failed");
+        }
+        return true;
+    } catch (error) {
+        console.error("Error updating general expense:", error);
+        return false;
+    }
 }
 async function removeGeneralExpense(expenseId) {
     try {
