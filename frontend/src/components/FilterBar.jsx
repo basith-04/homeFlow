@@ -19,7 +19,7 @@
 import { SearchIcon } from "../icons/dashboardIcons";
 
 export default function FilterBar({
-  filters = ["All", "This Week", "This Month"],
+  filters = ["All","Today", "This Week", "This Month"],
   activeFilter,
   onFilter,
   searchQuery,

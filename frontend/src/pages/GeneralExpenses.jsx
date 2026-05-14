@@ -39,11 +39,32 @@ import { ExpenseCard } from "../components/ExpenseCard.jsx";
 // ─── Filter logic ─────────────────────────────────────────────────────────────
 function applyFilter(items, filter) {
   if (filter === "All") return items;
-  if (filter === "This Week") return items.filter((i) => i.bucket === "This Week");
-  if (filter === "This Month") return items.filter(
-    (i) => i.bucket === "This Week" || i.bucket === "This Month"
-  );
-  return items;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const day = today.getDay();
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() + (day === 0 ? -6 : 1 - day));
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+
+  const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+  const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+  return items.filter((item) => {
+    if (!item.date) return false;
+    const [year, month, date] = item.date.split("-").map(Number);
+    const itemDate = new Date(year, month - 1, date);
+    if (isNaN(itemDate.getTime())) return false;
+
+    switch (filter) {
+      case "Today":     return itemDate.getTime() === today.getTime();
+      case "This Week": return itemDate >= weekStart && itemDate <= weekEnd;
+      case "This Month":return itemDate >= monthStart && itemDate <= monthEnd;
+      default:          return false;
+    }
+  });
 }
 
 // ─── GeneralExpenses — root export ──────────────────────────────────────────
@@ -124,6 +145,7 @@ export default function GeneralExpenses() {
 
         {/* 3. Filter bar */}
         <FilterBar
+          filters={["All", "Today", "This Week", "This Month"]}
           activeFilter={activeFilter}
           onFilter={setActiveFilter}
           searchQuery={searchQuery}
