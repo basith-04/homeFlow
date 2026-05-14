@@ -33,7 +33,7 @@ import RecentActivity from "../components/RecentActivity";
 import FAB from "../components/FAB";
 import AddEntry from "../components/AddEntry";
 import { getGroceryPurchases } from "../services/groceryServices";
-import {jwtDecode} from "jwt-decode"
+import { jwtDecode } from "jwt-decode"
 import { getGeneralExpenses } from "../services/generalExpenseService";
 export default function Dashboard() {
   // Controls the AddEntry bottom sheet — passed as props to FAB and AddEntry
@@ -41,30 +41,41 @@ export default function Dashboard() {
 
   // react-router navigate fn — used to go to /grocery on category card click
 
-  const userName=jwtDecode(localStorage.getItem("token")).userName
+  const userName = jwtDecode(localStorage.getItem("token")).userName;
   const navigate = useNavigate();
   const [groceryPurchases, setGroceryPurchases] = useState([]);
   const [generalExpenses, setGeneralExpenses] = useState([]);
+
   useEffect(() => {
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
+
   async function fetchData() {
-    const data = await getGroceryPurchases()
-    const generalData = await getGeneralExpenses()
-    setGeneralExpenses(generalData)
-    setGroceryPurchases(data)
+    const data = await getGroceryPurchases();
+    const generalData = await getGeneralExpenses();
+    setGroceryPurchases(data);
+    setGeneralExpenses(generalData);
   }
-  const totalSpend = groceryPurchases.reduce((acc, p) => {
-    // Strip "₹" and parse to number for summation
+
+  const currentMonth = new Date().getMonth() + 1;
+
+  const monthlyGrocery = groceryPurchases.filter((p) =>
+    parseInt(p.date.slice(5, 7)) === currentMonth
+  );
+  const monthlyGeneral = generalExpenses.filter((p) =>
+    parseInt(p.date.slice(5, 7)) === currentMonth
+  );
+
+  const totalSpend = monthlyGrocery.reduce((acc, p) => {
     return acc + parseInt(p.totalprice.replace("₹", ""), 10);
   }, 0);
-  const totalGeneralSpend = generalExpenses.reduce((acc, p) => {
+
+  const totalGeneralSpend = monthlyGeneral.reduce((acc, p) => {
     return acc + parseInt(p.amount.replace("₹", ""), 10);
   }, 0);
-  const time = new Date().getTime();
-  console.log("Current time in ms:", time);
-  const totalEntries = groceryPurchases.length;
-  const totalGeneralEntries = generalExpenses.length;
+
+  const totalEntries = monthlyGrocery.length;
+  const totalGeneralEntries = monthlyGeneral.length;
   return (
     // Full-screen lavender background, vertically scrollable
     <div
@@ -78,13 +89,13 @@ export default function Dashboard() {
         <TopBar name={userName} month="May 2026" initials="BA" />
 
         {/* 2. Main spend card — blue gradient, total + budget bar */}
-        <SpendCard total={totalSpend+totalGeneralSpend} entries={totalEntries+totalGeneralEntries} />
+        <SpendCard total={totalSpend + totalGeneralSpend} entries={totalEntries + totalGeneralEntries} />
 
         {/* 3. Category summary — Groceries & General side by side */}
         {/* onGroceryClick wires the Groceries card → /grocery navigation */}
-        <CategoryCards 
-          onGeneralClick={()=> navigate("/general")}  generalData={{totalGeneralSpend,totalGeneralEntries}}
-          onGroceryClick={() => navigate("/grocery")} groceryData={{totalSpend,totalEntries}}/>
+        <CategoryCards
+          onGeneralClick={() => navigate("/general")} generalData={{ totalGeneralSpend, totalGeneralEntries }}
+          onGroceryClick={() => navigate("/grocery")} groceryData={{ totalSpend, totalEntries }} />
 
         {/* 4. Restock alerts — coming-soon dashed cards */}
         <RestockAlerts />
