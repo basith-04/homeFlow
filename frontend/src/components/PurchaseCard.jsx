@@ -2,32 +2,30 @@
  * PurchaseCard — A single grocery purchase list item.
  *
  * ─── Props ─────────────────────────────────────────────────────────────────
- *   item        : string  — product name, e.g. "Tomato"
- *   category    : string  — e.g. "Vegetable", "Dairy"
- *   quantity    : string  — e.g. "2 kg"
- *   totalPrice  : string  — e.g. "₹60"
- *   unitPrice   : string  — e.g. "₹30/kg"
- *   by          : string  — who logged it, e.g. "Basith"
- *   when        : string  — "Today" | "Yesterday" | date string
- *   accentColor : string  — left border color (hex), different per category
- *   tagColor    : string  — category pill text color
- *   tagBg       : string  — category pill bg color
+ *   purchase_id : string | number — unique ID
+ *   item        : string          — product name, e.g. "Tomato"
+ *   item_id     : number          — item FK used for edit
+ *   category    : string          — e.g. "Vegetable", "Dairy"
+ *   quantity    : string          — e.g. "2 kg"
+ *   totalprice  : string          — e.g. "₹60"
+ *   unitprice   : string          — e.g. "₹30/kg"
+ *   unit        : string          — e.g. "kg"
+ *   by          : string          — who logged it
+ *   date        : string          — ISO date string
+ *   onEdit      : fn(itemData)    — called when Edit is tapped; parent opens EditSheet
+ *   onDelete    : fn(id)          — optional callback after delete (triggers re-fetch)
  *
  * ─── Internal state ────────────────────────────────────────────────────────
  *   menuOpen : bool — controls the ⋮ three-dot dropdown visibility
- *                     Clicking outside the card closes it via document listener.
- *
- * ─── Layout ────────────────────────────────────────────────────────────────
- *   [colored bar | item + tag]        [amount + unit price | ⋮ menu]
- *   ─────────────────────────────────────────────────────────────────
- *   quantity (left)                   "by X • When" (right)
  */
 
 import { useState, useRef, useEffect } from "react";
 import { MoreVerticalIcon } from "../icons/dashboardIcons";
 import { removeGroceryPurchase } from "../services/groceryServices";
 
-export default function PurchaseCard(item) {
+export default function PurchaseCard(props) {
+  const { purchase_id, item, item_id, category, quantity, totalprice, unitprice, unit, by, date, onEdit, onDelete } = props;
+
   // Controls the three-dot context menu dropdown
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -43,11 +41,22 @@ export default function PurchaseCard(item) {
     return () => document.removeEventListener("mousedown", handleOutside);
   }, [menuOpen]);
 
+  async function handleDelete() {
+    const res = await removeGroceryPurchase(purchase_id);
+    console.log("[HomeFlow] Delete:", purchase_id);
+    setMenuOpen(false);
+    if (res && onDelete) onDelete(purchase_id);
+  }
+
+  function handleEdit() {
+    if (onEdit) onEdit(props);
+    setMenuOpen(false);
+  }
+
   return (
     <div
       className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4
                  hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
-      // Colored left accent bar via border-left
       style={{ borderLeft: `4px solid #3660F9` }}
     >
       {/* ── Top row: item info + amount + menu ── */}
@@ -56,25 +65,25 @@ export default function PurchaseCard(item) {
         {/* Left: item name + category tag */}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-extrabold text-[#17161A] leading-snug truncate">
-            {item.item}
+            {item}
           </p>
           {/* Category pill */}
           <span
             className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded-full"
             style={{ color: "#3660F9", backgroundColor: "#EEF2FF" }}
           >
-            {item.category}
+            {category}
           </span>
         </div>
 
         {/* Right: amount + unit price + three-dot menu */}
         <div className="flex items-start gap-2 flex-shrink-0">
           <div className="text-right">
-            <p className="text-sm font-extrabold text-[#17161A]">{item.totalprice}</p>
-            <p className="text-[11px] text-gray-400 font-medium mt-0.5">{item.unitprice}</p>
+            <p className="text-sm font-extrabold text-[#17161A]">{totalprice}</p>
+            <p className="text-[11px] text-gray-400 font-medium mt-0.5">{unitprice}</p>
           </div>
 
-          {/* Three-dot menu — positioned relatively so dropdown aligns below */}
+          {/* Three-dot menu */}
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setMenuOpen((v) => !v)}
@@ -86,7 +95,7 @@ export default function PurchaseCard(item) {
               <MoreVerticalIcon className="w-4 h-4" />
             </button>
 
-            {/* Dropdown menu — absolutely positioned, appears on click */}
+            {/* Dropdown menu */}
             {menuOpen && (
               <div
                 className="absolute right-0 top-8 z-30 w-32
@@ -95,10 +104,7 @@ export default function PurchaseCard(item) {
               >
                 {/* Edit option */}
                 <button
-                  onClick={() => {
-                    console.log("[HomeFlow] Edit:", item);
-                    setMenuOpen(false);
-                  }}
+                  onClick={handleEdit}
                   className="w-full px-4 py-2.5 text-left text-sm font-medium text-gray-700
                              hover:bg-[#EEF2FF] hover:text-[#3660F9] transition-colors flex items-center gap-2"
                 >
@@ -107,11 +113,7 @@ export default function PurchaseCard(item) {
 
                 {/* Delete option */}
                 <button
-                  onClick={async () => {
-                    const res= await removeGroceryPurchase(item.purchase_id)
-                    console.log("[HomeFlow] Delete:", item);
-                    setMenuOpen(false);
-                  }}
+                  onClick={handleDelete}
                   className="w-full px-4 py-2.5 text-left text-sm font-medium text-red-500
                              hover:bg-red-50 transition-colors flex items-center gap-2"
                 >
@@ -130,12 +132,12 @@ export default function PurchaseCard(item) {
           className="text-[11px] font-bold px-2.5 py-0.5 rounded-full"
           style={{ color: "#3660F9", backgroundColor: "#EEF2FF" }}
         >
-          {item.quantity}
+          {quantity} {unit}
         </span>
 
         {/* Logged-by info */}
         <p className="text-[10px] text-gray-400 font-medium">
-          by {item.by} • {item.date.slice(0, 10)}
+          by {by} • {(date ?? "").slice(0, 10)}
         </p>
       </div>
     </div>

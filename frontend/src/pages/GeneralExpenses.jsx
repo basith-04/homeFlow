@@ -3,48 +3,40 @@
  *
  * ─── Navigation ────────────────────────────────────────────────────────────
  *   Route: /general
- *   Entry point: Dashboard → CategoryCards (General Expenses card) → navigate("/general")
- *   Back: TopBar back arrow → navigate(-1)  [browser history]
  *
  * ─── State ─────────────────────────────────────────────────────────────────
  *   activeFilter : string  — "All" | "This Week" | "This Month"
- *                            used to filter MOCK_PURCHASES by date bucket
- *   searchQuery  : string  — live text filter on item name (case-insensitive)
- *   sheetOpen    : bool    — controls AddEntry bottom sheet (same as Dashboard)
- *
- * ─── Derived data ──────────────────────────────────────────────────────────
- *   displayedItems — MOCK_PURCHASES filtered by activeFilter AND searchQuery.
- *                    Recalculated on every render (no heavy memoization needed
- *                    for this scale of mock data).
+ *   searchQuery  : string  — live text filter on expense name
+ *   sheetOpen    : bool    — controls AddEntry bottom sheet
+ *   editOpen     : bool    — controls EditSheet bottom sheet
+ *   editTarget   : object  — the expense currently being edited
+ *   isSaving     : bool    — loading state while PUT is in flight
  *
  * ─── Component tree ────────────────────────────────────────────────────────
  *   GeneralExpenses
- *     ├─ PageTopBar         — back arrow + "General Expenses" + filter icon
- *     ├─ SummaryStrip       — quick totals (entries count + total spend)
- *     ├─ FilterBar          — pill tabs + search input
- *     ├─ List of PurchaseCard — one per displayedItems entry
- *     ├─ EmptyState         — shown when displayedItems is empty
- *     ├─ FAB                — opens AddEntry sheet
- *     └─ AddEntry           — bottom sheet modal
+ *     ├─ PageTopBar
+ *     ├─ SummaryStrip
+ *     ├─ FilterBar
+ *     ├─ List of ExpenseCard (onEdit / onDelete wired)
+ *     ├─ EmptyState
+ *     ├─ FAB
+ *     ├─ AddEntry
+ *     └─ EditSheet
  */
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import PurchaseCard from "../components/PurchaseCard";
 import FilterBar from "../components/FilterBar";
 import FAB from "../components/FAB";
 import AddEntry from "../components/AddEntry";
+import EditSheet from "../components/EditSheet";
 import PageTopBar from "../components/PageTopBar";
 import SummaryStrip from "../components/SummaryStrip";
 import EmptyState from "../components/EmptyState";
-import { getGeneralExpenses } from "../services/generalExpenseService";
-import {ExpenseCard} from "../components/ExpenseCard.jsx";
-
+import { getGeneralExpenses, editGeneralExpense } from "../services/generalExpenseService";
+import { ExpenseCard } from "../components/ExpenseCard.jsx";
 
 // ─── Filter logic ─────────────────────────────────────────────────────────────
-// "All" → no date filter
-// "This Week" → bucket === "This Week"
-// "This Month" → bucket === "This Week" OR "This Month"
 function applyFilter(items, filter) {
   if (filter === "All") return items;
   if (filter === "This Week") return items.filter((i) => i.bucket === "This Week");
@@ -54,68 +46,83 @@ function applyFilter(items, filter) {
   return items;
 }
 
-// Components extracted to src/components/*
-
 // ─── GeneralExpenses — root export ──────────────────────────────────────────
 export default function GeneralExpenses() {
-
   const navigate = useNavigate();
 
-  const [generalExpenses, setGeneralExpenses] = useState([])
-
-  // Filter pill state — "All" | "This Week" | "This Month"
+  const [generalExpenses, setGeneralExpenses] = useState([]);
   const [activeFilter, setActiveFilter] = useState("All");
-
-  // Search input state — filters by item name
   const [searchQuery, setSearchQuery] = useState("");
 
-  // AddEntry bottom sheet — same pattern as Dashboard
+  // AddEntry bottom sheet
   const [sheetOpen, setSheetOpen] = useState(false);
 
-
+  // EditSheet state
+  const [editOpen, setEditOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    fetchData()
-  }, [])
-  async function fetchData() {
+    fetchData();
+  }, []);
 
-    const data = await getGeneralExpenses()
-    setGeneralExpenses(data)
-    console.log(data)
+  async function fetchData() {
+    const data = await getGeneralExpenses();
+    setGeneralExpenses(data);
   }
-  // ── Derived: filtered + searched purchase list ──────────────────────────
-  // 1. Apply date filter bucket first
-  // 2. Then narrow by search query (case-insensitive substring on item name)
+
+  // ── Derived: filtered + searched expense list ──────────────────────────
   const displayedItems = applyFilter(generalExpenses, activeFilter).filter((p) =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+    (p.name ?? "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // ── Quick totals for SummaryStrip ────────────────────────────────────────
   const totalSpend = displayedItems.reduce((acc, p) => {
-    // Strip "₹" and parse to number for summation
-    return acc + parseInt(p.amount.replace("₹", ""), 10);
+    return acc + parseInt((p.amount ?? "0").toString().replace("₹", ""), 10);
   }, 0);
-  
+
+  // ── Edit handlers ────────────────────────────────────────────────────────
+  function handleEditOpen(expense) {
+    setEditTarget(expense);
+    setEditOpen(true);
+  }
+
+  async function handleEditSave(updatedForm) {
+    if (!editTarget) return;
+    setIsSaving(true);
+    const res = await editGeneralExpense(editTarget.id, updatedForm);
+    setIsSaving(false);
+    if (res) {
+      setEditOpen(false);
+      setEditTarget(null);
+      fetchData(); // re-fetch to show updated data
+    }
+  }
+
+  // ── Delete handler ───────────────────────────────────────────────────────
+  function handleDelete() {
+    fetchData();
+  }
+
   return (
     <div className="min-h-screen w-full" style={{ backgroundColor: "#EEF2FF" }}>
-      {/* Centered, mobile-first container — same max-w-md as Dashboard */}
+      {/* Centered, mobile-first container */}
       <div className="mx-auto max-w-md px-4 pt-10 pb-28">
 
-        {/* 1. Top bar — back arrow + title + filter icon */}
+        {/* 1. Top bar */}
         <PageTopBar
           pageTitle="General Expenses"
           onBack={() => navigate(-1)}
           filterActive={activeFilter !== "All"}
         />
 
-        {/* 2. Summary strip — quick totals for the current filter view */}
+        {/* 2. Summary strip */}
         <SummaryStrip
           count={displayedItems.length}
           total={`₹${totalSpend.toLocaleString("en-IN")}`}
         />
 
-        {/* 3. Filter bar — pill toggles + search input
-                Both states are controlled here and passed down as props.     */}
+        {/* 3. Filter bar */}
         <FilterBar
           activeFilter={activeFilter}
           onFilter={setActiveFilter}
@@ -123,27 +130,40 @@ export default function GeneralExpenses() {
           onSearch={setSearchQuery}
         />
 
-        {/* 4. Purchase list — rendered from displayedItems (derived state) */}
+        {/* 4. Expense list */}
         {displayedItems.length > 0 ? (
           <div className="flex flex-col gap-3">
             {displayedItems.map((p) => (
-              // PurchaseCard manages its own menuOpen state internally
-              <ExpenseCard key={p.id} {...p} />
+              <ExpenseCard
+                key={p.id}
+                {...p}
+                onEdit={handleEditOpen}
+                onDelete={handleDelete}
+              />
             ))}
           </div>
         ) : (
-          // 5. Empty state — only shown when filters/search yield nothing
           <EmptyState />
         )}
       </div>
 
-      {/* 6. FAB — same as Dashboard, opens AddEntry sheet */}
+      {/* 5. FAB */}
       <FAB onClick={() => setSheetOpen(true)} />
 
-      {/* 7. AddEntry sheet — reused from Dashboard, defaults to general tab */}
+      {/* 6. AddEntry sheet */}
       <AddEntry
         isOpen={sheetOpen}
         onClose={() => setSheetOpen(false)}
+      />
+
+      {/* 7. EditSheet — opens when Edit is tapped on an ExpenseCard */}
+      <EditSheet
+        isOpen={editOpen}
+        onClose={() => { setEditOpen(false); setEditTarget(null); }}
+        type="general"
+        initialData={editTarget}
+        onSave={handleEditSave}
+        isSaving={isSaving}
       />
     </div>
   );

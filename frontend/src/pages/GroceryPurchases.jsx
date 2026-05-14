@@ -8,24 +8,22 @@
  *
  * ─── State ─────────────────────────────────────────────────────────────────
  *   activeFilter : string  — "All" | "This Week" | "This Month"
- *                            used to filter MOCK_PURCHASES by date bucket
  *   searchQuery  : string  — live text filter on item name (case-insensitive)
- *   sheetOpen    : bool    — controls AddEntry bottom sheet (same as Dashboard)
- *
- * ─── Derived data ──────────────────────────────────────────────────────────
- *   displayedItems — MOCK_PURCHASES filtered by activeFilter AND searchQuery.
- *                    Recalculated on every render (no heavy memoization needed
- *                    for this scale of mock data).
+ *   sheetOpen    : bool    — controls AddEntry bottom sheet
+ *   editOpen     : bool    — controls EditSheet bottom sheet
+ *   editTarget   : object  — the item currently being edited
+ *   isSaving     : bool    — loading state while PUT is in flight
  *
  * ─── Component tree ────────────────────────────────────────────────────────
  *   GroceryPurchases
- *     ├─ PageTopBar         — back arrow + "Grocery Purchases" + filter icon
- *     ├─ SummaryStrip       — quick totals (entries count + total spend)
- *     ├─ FilterBar          — pill tabs + search input
- *     ├─ List of PurchaseCard — one per displayedItems entry
- *     ├─ EmptyState         — shown when displayedItems is empty
- *     ├─ FAB                — opens AddEntry sheet
- *     └─ AddEntry           — bottom sheet modal
+ *     ├─ PageTopBar
+ *     ├─ SummaryStrip
+ *     ├─ FilterBar
+ *     ├─ List of PurchaseCard (onEdit / onDelete wired)
+ *     ├─ EmptyState
+ *     ├─ FAB
+ *     ├─ AddEntry
+ *     └─ EditSheet
  */
 
 import { useState, useEffect } from "react";
@@ -34,135 +32,13 @@ import PurchaseCard from "../components/PurchaseCard";
 import FilterBar from "../components/FilterBar";
 import FAB from "../components/FAB";
 import AddEntry from "../components/AddEntry";
-import { getGroceryPurchases } from "../services/groceryServices";
+import EditSheet from "../components/EditSheet";
+import { getGroceryPurchases, editGroceryPurchase } from "../services/groceryServices";
 import PageTopBar from "../components/PageTopBar";
 import SummaryStrip from "../components/SummaryStrip";
 import EmptyState from "../components/EmptyState";
 
-// ─── Mock data ───────────────────────────────────────────────────────────────
-// In a real app these would come from a store / API call.
-// Each entry has a `bucket` field for easy filter matching.
-
-
-const MOCK_PURCHASES = [
-  {
-    id: 1,
-    item: "Tomato",
-    category: "Vegetable",
-    quantity: "2 kg",
-    totalPrice: "₹60",
-    unitPrice: "₹30/kg",
-    by: "Basith",
-    when: "Today",
-    bucket: "This Week",          // "This Week" also belongs to "This Month"
-    accentColor: "#3660F9",
-    tagColor: "#3660F9",
-    tagBg: "#EEF2FF",
-  },
-  {
-    id: 2,
-    item: "Milk",
-    category: "Dairy",
-    quantity: "1 L",
-    totalPrice: "₹28",
-    unitPrice: "₹28/L",
-    by: "Basith",
-    when: "Today",
-    bucket: "This Week",
-    accentColor: "#0EA5E9",
-    tagColor: "#0EA5E9",
-    tagBg: "#F0F9FF",
-  },
-  {
-    id: 3,
-    item: "Rice",
-    category: "Grain",
-    quantity: "5 kg",
-    totalPrice: "₹320",
-    unitPrice: "₹64/kg",
-    by: "Basith",
-    when: "Yesterday",
-    bucket: "This Week",
-    accentColor: "#F59E0B",
-    tagColor: "#B45309",
-    tagBg: "#FFFBEB",
-  },
-  {
-    id: 4,
-    item: "Eggs",
-    category: "Poultry",
-    quantity: "1 dozen",
-    totalPrice: "₹84",
-    unitPrice: "₹7/egg",
-    by: "Basith",
-    when: "Yesterday",
-    bucket: "This Week",
-    accentColor: "#F97316",
-    tagColor: "#C2410C",
-    tagBg: "#FFF7ED",
-  },
-  {
-    id: 5,
-    item: "Onion",
-    category: "Vegetable",
-    quantity: "3 kg",
-    totalPrice: "₹75",
-    unitPrice: "₹25/kg",
-    by: "Basith",
-    when: "3 days ago",
-    bucket: "This Week",
-    accentColor: "#A855F7",
-    tagColor: "#7E22CE",
-    tagBg: "#FAF5FF",
-  },
-  {
-    id: 6,
-    item: "Potato",
-    category: "Vegetable",
-    quantity: "2 kg",
-    totalPrice: "₹40",
-    unitPrice: "₹20/kg",
-    by: "Basith",
-    when: "4 days ago",
-    bucket: "This Week",
-    accentColor: "#10B981",
-    tagColor: "#065F46",
-    tagBg: "#ECFDF5",
-  },
-  {
-    id: 7,
-    item: "Spinach",
-    category: "Leafy Green",
-    quantity: "1 kg",
-    totalPrice: "₹35",
-    unitPrice: "₹35/kg",
-    by: "Basith",
-    when: "Last week",
-    bucket: "This Month",         // older than this week but within month
-    accentColor: "#22C55E",
-    tagColor: "#15803D",
-    tagBg: "#F0FDF4",
-  },
-  {
-    id: 8,
-    item: "Bread",
-    category: "Bakery",
-    quantity: "2 pcs",
-    totalPrice: "₹80",
-    unitPrice: "₹40/pc",
-    by: "Basith",
-    when: "10 days ago",
-    bucket: "This Month",
-    accentColor: "#F43F5E",
-    tagColor: "#BE123C",
-    tagBg: "#FFF1F2",
-  },
-];
-
 // ─── Filter logic ─────────────────────────────────────────────────────────────
-// "All" → no date filter
-// "This Week" → bucket === "This Week"
-// "This Month" → bucket === "This Week" OR "This Month"
 function applyFilter(items, filter) {
   if (filter === "All") return items;
   if (filter === "This Week") return items.filter((i) => i.bucket === "This Week");
@@ -172,68 +48,83 @@ function applyFilter(items, filter) {
   return items;
 }
 
-// Components extracted to src/components/*
-
 // ─── GroceryPurchases — root export ──────────────────────────────────────────
 export default function GroceryPurchases() {
-
   const navigate = useNavigate();
 
-  const [groceryPurchases, setGroceryPurchases] = useState([])
-
-  // Filter pill state — "All" | "This Week" | "This Month"
+  const [groceryPurchases, setGroceryPurchases] = useState([]);
   const [activeFilter, setActiveFilter] = useState("All");
-
-  // Search input state — filters by item name
   const [searchQuery, setSearchQuery] = useState("");
 
-  // AddEntry bottom sheet — same pattern as Dashboard
+  // AddEntry bottom sheet
   const [sheetOpen, setSheetOpen] = useState(false);
 
-
+  // EditSheet state
+  const [editOpen, setEditOpen] = useState(false);
+  const [editTarget, setEditTarget] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    fetchData()
-  }, [])
-  async function fetchData() {
+    fetchData();
+  }, []);
 
-    const data = await getGroceryPurchases()
-    setGroceryPurchases(data)
-    console.log(data)
+  async function fetchData() {
+    const data = await getGroceryPurchases();
+    setGroceryPurchases(data);
   }
+
   // ── Derived: filtered + searched purchase list ──────────────────────────
-  // 1. Apply date filter bucket first
-  // 2. Then narrow by search query (case-insensitive substring on item name)
   const displayedItems = applyFilter(groceryPurchases, activeFilter).filter((p) =>
     p.item.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // ── Quick totals for SummaryStrip ────────────────────────────────────────
   const totalSpend = displayedItems.reduce((acc, p) => {
-    // Strip "₹" and parse to number for summation
-    return acc + parseInt(p.totalprice.replace("₹", ""), 10);
+    return acc + parseInt((p.totalprice ?? "0").replace("₹", ""), 10);
   }, 0);
+
+  // ── Edit handlers ────────────────────────────────────────────────────────
+  function handleEditOpen(item) {
+    setEditTarget(item);
+    setEditOpen(true);
+  }
+
+  async function handleEditSave(updatedForm) {
+    if (!editTarget) return;
+    setIsSaving(true);
+    const res = await editGroceryPurchase(editTarget.purchase_id, updatedForm);
+    setIsSaving(false);
+    if (res) {
+      setEditOpen(false);
+      setEditTarget(null);
+      fetchData(); // re-fetch to show updated data
+    }
+  }
+
+  // ── Delete handler ───────────────────────────────────────────────────────
+  function handleDelete() {
+    fetchData(); // re-fetch after delete
+  }
 
   return (
     <div className="min-h-screen w-full" style={{ backgroundColor: "#EEF2FF" }}>
-      {/* Centered, mobile-first container — same max-w-md as Dashboard */}
+      {/* Centered, mobile-first container */}
       <div className="mx-auto max-w-md px-4 pt-10 pb-28">
 
-        {/* 1. Top bar — back arrow + title + filter icon */}
+        {/* 1. Top bar */}
         <PageTopBar
           pageTitle="Grocery Purchases"
           onBack={() => navigate(-1)}
           filterActive={activeFilter !== "All"}
         />
 
-        {/* 2. Summary strip — quick totals for the current filter view */}
+        {/* 2. Summary strip */}
         <SummaryStrip
           count={displayedItems.length}
           total={`₹${totalSpend.toLocaleString("en-IN")}`}
         />
 
-        {/* 3. Filter bar — pill toggles + search input
-                Both states are controlled here and passed down as props.     */}
+        {/* 3. Filter bar */}
         <FilterBar
           activeFilter={activeFilter}
           onFilter={setActiveFilter}
@@ -241,27 +132,40 @@ export default function GroceryPurchases() {
           onSearch={setSearchQuery}
         />
 
-        {/* 4. Purchase list — rendered from displayedItems (derived state) */}
+        {/* 4. Purchase list */}
         {displayedItems.length > 0 ? (
           <div className="flex flex-col gap-3">
             {displayedItems.map((p) => (
-              // PurchaseCard manages its own menuOpen state internally
-              <PurchaseCard key={p.id} {...p} />
+              <PurchaseCard
+                key={p.purchase_id}
+                {...p}
+                onEdit={handleEditOpen}
+                onDelete={handleDelete}
+              />
             ))}
           </div>
         ) : (
-          // 5. Empty state — only shown when filters/search yield nothing
           <EmptyState />
         )}
       </div>
 
-      {/* 6. FAB — same as Dashboard, opens AddEntry sheet */}
+      {/* 5. FAB */}
       <FAB onClick={() => setSheetOpen(true)} />
 
-      {/* 7. AddEntry sheet — reused from Dashboard, defaults to grocery tab */}
+      {/* 6. AddEntry sheet */}
       <AddEntry
         isOpen={sheetOpen}
         onClose={() => setSheetOpen(false)}
+      />
+
+      {/* 7. EditSheet — opens when Edit is tapped on a PurchaseCard */}
+      <EditSheet
+        isOpen={editOpen}
+        onClose={() => { setEditOpen(false); setEditTarget(null); }}
+        type="grocery"
+        initialData={editTarget}
+        onSave={handleEditSave}
+        isSaving={isSaving}
       />
     </div>
   );
