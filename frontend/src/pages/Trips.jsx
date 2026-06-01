@@ -39,22 +39,38 @@ import { XIcon, PlusIcon } from "../icons/dashboardIcons";
 const MONTHS_SHORT = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
 function parseIso(isoStr) {
-  const [y, m, d] = isoStr.split("-").map(Number);
-  return new Date(y, m - 1, d);
+  if (!isoStr || typeof isoStr !== "string") return new Date(NaN);
+  // Handle full ISO timestamps by using only the date portion before 'T'
+  const datePart = isoStr.includes("T") ? isoStr.split("T")[0] : isoStr;
+  const parts = datePart.split("-").map(Number);
+  if (parts.length === 3 && parts.every((n) => !Number.isNaN(n))) {
+    const [y, m, d] = parts;
+    return new Date(y, m - 1, d);
+  }
+  // Fallback: try Date constructor and normalize to local y/m/d to avoid TZ shifts
+  const d = new Date(isoStr);
+  if (Number.isNaN(d.getTime())) return new Date(NaN);
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
 function formatShort(isoStr) {
   const d = parseIso(isoStr);
+  if (Number.isNaN(d.getTime())) return "";
   return `${MONTHS_SHORT[d.getMonth()]} ${d.getDate()}`;
 }
 
 function formatYear(isoStr) {
-  return parseIso(isoStr).getFullYear();
+  const d = parseIso(isoStr);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.getFullYear();
 }
 
 function nightCount(startIso, endIso) {
-  const diff = Math.abs(parseIso(endIso) - parseIso(startIso));
-  return Math.round(diff / (1000 * 60 * 60 * 24));
+  const s = parseIso(startIso);
+  const e = parseIso(endIso);
+  if (Number.isNaN(s.getTime()) || Number.isNaN(e.getTime())) return 0;
+  const diff = Math.abs(e - s);
+  return Math.max(0, Math.round(diff / (1000 * 60 * 60 * 24)));
 }
 
 // ── Skeleton card ─────────────────────────────────────────────────────────────
@@ -130,6 +146,7 @@ export default function Trips() {
     setError(null);
     try {
       const data = await getTrips();
+      console.log("Fetched trips:", data);
       setTrips(data);
     } catch (err) {
       setError("Failed to load trips");
@@ -214,6 +231,7 @@ export default function Trips() {
             <SkeletonCard />
             <SkeletonCard />
             <SkeletonCard />
+            
           </div>
         ) : error ? (
           /* Error state */

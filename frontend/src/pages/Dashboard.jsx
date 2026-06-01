@@ -86,7 +86,7 @@ export default function Dashboard() {
       <div className="mx-auto max-w-md px-4 pt-10 pb-6">
 
         {/* 1. Top bar — name greeting + bell + avatar */}
-        <TopBar name={userName} month="May 2026" initials="BA" />
+        <TopBar name={userName} month="JUNE 2026" initials="BA" />
 
         {/* 2. Main spend card — blue gradient, total + budget bar */}
         <SpendCard total={totalSpend + totalGeneralSpend} entries={totalEntries + totalGeneralEntries} />
@@ -95,8 +95,10 @@ export default function Dashboard() {
         {/* onGroceryClick wires the Groceries card → /grocery navigation */}
         <CategoryCards
           onGeneralClick={() => navigate("/general")} generalData={{ totalGeneralSpend, totalGeneralEntries }}
-          onGroceryClick={() => navigate("/grocery")} groceryData={{ totalSpend, totalEntries }} />
+          onGroceryClick={() => navigate("/grocery")} groceryData={{ totalSpend, totalEntries }}
+          onTripsClick={() => navigate("/trips")} tripsData={{ totalTripSpend:"19000", totalTripEntries: 1 }}
 
+        />
         {/* 4. Restock alerts — coming-soon dashed cards */}
         <RestockAlerts />
 

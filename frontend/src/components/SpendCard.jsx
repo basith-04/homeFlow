@@ -18,7 +18,7 @@ export default function SpendCard({ total = "₹4,280", entries = 12 }) {
         </p>
         <span className="flex items-center gap-1 bg-white/15 text-white/90 text-[10px] font-semibold px-2.5 py-1 rounded-full">
           <TrendUpIcon className="w-3 h-3" />
-          May 2026
+          JUNE 2026
         </span>
       </div>
 
