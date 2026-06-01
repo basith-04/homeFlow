@@ -129,7 +129,7 @@ export default function CategoryCards({
         bgColor="#EEF2FF"
         onClick={onTripsClick}
       />
-      <CategoryCard
+      {/* <CategoryCard
         id="fuel"
         emoji="⛽"
         label="Fuel"
@@ -138,7 +138,7 @@ export default function CategoryCards({
         accentColor="#3660F9"
         bgColor="#F5F3FF"
         onClick={onGeneralClick}
-      />
+      /> */}
 
     </div>
   );
