@@ -84,6 +84,8 @@ function CategoryCard({ emoji, label, amount, entries, accentColor, bgColor, onC
 export default function CategoryCards({
   generalData,
   groceryData,
+  tripsData,
+  onTripsClick,
   onGroceryClick,
   onGeneralClick,
 }) {
@@ -117,6 +119,27 @@ export default function CategoryCards({
         bgColor="#F5F3FF"
         onClick={onGeneralClick}
       />
+      <CategoryCard
+        id="trips"
+        emoji="�"
+        label="Trips"
+        amount={tripsData.totalTripSpend}
+        entries={tripsData.totalTripEntries}
+        accentColor="#3660F9"
+        bgColor="#EEF2FF"
+        onClick={onTripsClick}
+      />
+      <CategoryCard
+        id="fuel"
+        emoji="⛽"
+        label="Fuel"
+        amount={1000}
+        entries={2}
+        accentColor="#3660F9"
+        bgColor="#F5F3FF"
+        onClick={onGeneralClick}
+      />
+
     </div>
   );
 }
