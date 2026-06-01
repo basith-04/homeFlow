@@ -302,7 +302,7 @@ function GeneralForm({ form, setForm }) {
 // AddEntry — Root export
 // Manages all state and composes the sheet layout
 // ════════════════════════════════════════════════════════════════════════════
-export default function AddEntry({ isOpen, onClose }) {
+export default function AddEntry({ isOpen, onClose,fetchGroceryPurchases=() => {} }) {
   // Which tab is active — drives form render and button color
   const [activeTab, setActiveTab] = useState("grocery");//grocery or general
 
@@ -347,6 +347,7 @@ export default function AddEntry({ isOpen, onClose }) {
           amount: "",
           groceryDate: todayISO(),
         })
+        fetchGroceryPurchases()
         onClose()
       }
 
