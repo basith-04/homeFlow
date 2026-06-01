@@ -104,10 +104,52 @@ CREATE TABLE expenses (
 );
 
 
+-- ========================
+-- TRIP MODULE
+-- ========================
+
+-- type: 'trip' (multi-day) or 'outing' (single day)
+-- categories: food, transport, stay, entry, shopping, other
+
+CREATE TABLE trips (
+    id           INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    household_id INTEGER NOT NULL,
+    name         VARCHAR(100) NOT NULL,
+    destination  VARCHAR(100),
+    type         VARCHAR(20) NOT NULL DEFAULT 'trip',
+    start_date   DATE NOT NULL,
+    end_date     DATE,
+    created_by   INTEGER,
+    created_at   TIMESTAMP DEFAULT now(),
+    CONSTRAINT trips_household_id_fkey
+        FOREIGN KEY (household_id) REFERENCES households(id),
+    CONSTRAINT trips_created_by_fkey
+        FOREIGN KEY (created_by) REFERENCES users(id)
+);
+
+CREATE TABLE trip_expenses (
+    id           INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    trip_id      INTEGER NOT NULL,
+    category     VARCHAR(20) NOT NULL,
+    amount       NUMERIC(10, 2) NOT NULL,
+    note         TEXT,
+    expense_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    created_by   INTEGER,
+    created_at   TIMESTAMP DEFAULT now(),
+    CONSTRAINT trip_expenses_trip_id_fkey
+        FOREIGN KEY (trip_id) REFERENCES trips(id) ON DELETE CASCADE,
+    CONSTRAINT trip_expenses_created_by_fkey
+        FOREIGN KEY (created_by) REFERENCES users(id),
+    CONSTRAINT trip_expenses_category_check
+        CHECK (category IN ('food', 'transport', 'stay', 'entry', 'shopping', 'other'))
+);
+
+
 -- ============================================================
 -- CHANGELOG
 -- ============================================================
 -- 2026-05-07  Initial schema documented (grocery, general expense)
 -- 2026-05-15  General expense module migrated: dropped old expenses table (item_id based),
 --             added expense_categories table, rebuilt expenses with proper id + category_id
+-- 2026-05-22  Added Trips module: trips + trip_expenses tables
 -- ============================================================
