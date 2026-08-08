@@ -102,7 +102,7 @@ function GroceryForm({ form, setForm }) {
 
   // Filter suggestions based on current item input value (case-insensitive)
   let filtered = grocerySuggestions.filter((s) =>
-    s.name.toLowerCase().includes(form.item.toLowerCase())
+    s.name.toLowerCase().includes(form.item.toLowerCase()) || s.local_name.toLowerCase().includes(form.item.toLowerCase()) 
   );
 
   useEffect(() => {
@@ -161,7 +161,7 @@ function GroceryForm({ form, setForm }) {
                 }}
               >
                 <span className="text-base">🛒</span>
-                {s.name}
+                {`${s.name} (${s.local_name})`}
               </li>
             ))}
           </ul>
