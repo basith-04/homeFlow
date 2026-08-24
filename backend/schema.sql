@@ -144,7 +144,7 @@ CREATE TABLE trip_expenses (
         CHECK (category IN ('food', 'transport', 'stay', 'entry', 'shopping', 'other'))
 );
 
-
+ALTER TABLE "items" ADD COLUMN "local_name" varchar(150);
 -- ============================================================
 -- CHANGELOG
 -- ============================================================
