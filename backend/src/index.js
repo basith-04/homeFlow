@@ -9,6 +9,7 @@ import { itemRouter } from './routes/itemRouter.js'
 import { groceryPurchasesRouter } from './routes/groceryPurchasesRouter.js'
 import { generalExpensesRouter } from './routes/generalExpensesRouter.js'
 import { tripsRouter } from './routes/tripsRouter.js'
+import { filterLogsRouter } from './routes/filterLogsRouter.js'
 
 
 const app=express()
@@ -27,6 +28,7 @@ app.use('/items',itemRouter)
 app.use('/grocery-purchases',groceryPurchasesRouter)
 app.use('/general-expenses',generalExpensesRouter)
 app.use('/trips',tripsRouter)
+app.use('/filter-logs',filterLogsRouter)
 
 
 app.listen(PORT, "0.0.0.0", () => {
