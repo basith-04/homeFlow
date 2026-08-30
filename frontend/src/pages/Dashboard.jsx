@@ -35,6 +35,7 @@ import AddEntry from "../components/AddEntry";
 import { getGroceryPurchases } from "../services/groceryServices";
 import { jwtDecode } from "jwt-decode"
 import { getGeneralExpenses } from "../services/generalExpenseService";
+import { getFilterLogs } from "../services/filterLogsService";
 export default function Dashboard() {
   // Controls the AddEntry bottom sheet — passed as props to FAB and AddEntry
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -45,6 +46,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [groceryPurchases, setGroceryPurchases] = useState([]);
   const [generalExpenses, setGeneralExpenses] = useState([]);
+  const [filterLogs, setFilterLogs] = useState([]);
 
   useEffect(() => {
     fetchData();
@@ -53,8 +55,10 @@ export default function Dashboard() {
   async function fetchData() {
     const data = await getGroceryPurchases();
     const generalData = await getGeneralExpenses();
+    const filterData = await getFilterLogs();
     setGroceryPurchases(data);
     setGeneralExpenses(generalData);
+    setFilterLogs(filterData);
   }
 
   const currentMonth = new Date().getMonth() + 1;
@@ -76,6 +80,20 @@ export default function Dashboard() {
 
   const totalEntries = monthlyGrocery.length;
   const totalGeneralEntries = monthlyGeneral.length;
+
+  // ── Water filter: next due date ──────────────────────────────────────────
+  const latestFilterLog = filterLogs[0] ?? null;
+  let nextFilterDue = null;
+  if (latestFilterLog?.change_date) {
+    const [y, m, d] = latestFilterLog.change_date.split("-").map(Number);
+    const due = new Date(y, m - 1 + 3, d);
+    nextFilterDue = due.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  }
+
   return (
     // Full-screen lavender background, vertically scrollable
     <div
@@ -97,7 +115,7 @@ export default function Dashboard() {
           onGeneralClick={() => navigate("/general")} generalData={{ totalGeneralSpend, totalGeneralEntries }}
           onGroceryClick={() => navigate("/grocery")} groceryData={{ totalSpend, totalEntries }}
           onTripsClick={() => navigate("/trips")} tripsData={{ totalTripSpend:"19000", totalTripEntries: 1 }}
-
+          onFilterLogsClick={() => navigate("/filter-logs")} filterLogsData={{ nextDue: nextFilterDue }}
         />
         {/* 4. Restock alerts — coming-soon dashed cards */}
         <RestockAlerts />
