@@ -144,6 +144,13 @@ CREATE TABLE trip_expenses (
         CHECK (category IN ('food', 'transport', 'stay', 'entry', 'shopping', 'other'))
 );
 
+CREATE TABLE filter_change_logs (
+  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  change_date DATE NOT NULL,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 ALTER TABLE "items" ADD COLUMN "local_name" varchar(150);
 -- ============================================================
 -- CHANGELOG
@@ -152,4 +159,5 @@ ALTER TABLE "items" ADD COLUMN "local_name" varchar(150);
 -- 2026-05-15  General expense module migrated: dropped old expenses table (item_id based),
 --             added expense_categories table, rebuilt expenses with proper id + category_id
 -- 2026-05-22  Added Trips module: trips + trip_expenses tables
+-- 2026-08-30 added filter_change_logs table 
 -- ============================================================
