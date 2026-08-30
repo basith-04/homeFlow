@@ -81,13 +81,59 @@ function CategoryCard({ emoji, label, amount, entries, accentColor, bgColor, onC
   );
 }
 
+/**
+ * FilterTile — a variant of CategoryCard for trackers that don't have a
+ * spend amount. Shows a "next due" date badge instead of entries count.
+ */
+function FilterTile({ emoji, label, nextDue, accentColor, bgColor, onClick }) {
+  return (
+    <div
+      onClick={onClick}
+      className="flex-1 bg-white rounded-2xl p-4 shadow-sm border border-gray-100
+                 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200
+                 cursor-pointer active:scale-[0.98]"
+    >
+      {/* Icon pill */}
+      <div
+        className="w-9 h-9 rounded-xl flex items-center justify-center text-lg mb-3"
+        style={{ backgroundColor: bgColor }}
+      >
+        {emoji}
+      </div>
+
+      {/* Label */}
+      <p className="text-xs text-gray-400 font-semibold mb-1">{label}</p>
+
+      {/* Next due — plays the same visual role as the amount on money tiles */}
+      <p className="text-sm font-extrabold text-[#17161A] tracking-tight leading-tight mb-1.5">
+        {nextDue ?? "—"}
+      </p>
+
+      {/* "due" badge */}
+      <span
+        className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+        style={{ color: accentColor, backgroundColor: bgColor }}
+      >
+        next due
+      </span>
+
+      {/* "View all →" hint */}
+      <p className="text-[10px] mt-2 font-semibold" style={{ color: accentColor }}>
+        View all →
+      </p>
+    </div>
+  );
+}
+
 export default function CategoryCards({
   generalData,
   groceryData,
   tripsData,
+  filterLogsData,
   onTripsClick,
   onGroceryClick,
   onGeneralClick,
+  onFilterLogsClick,
 }) {
   // Route click to the correct prop based on card id
 
@@ -98,48 +144,55 @@ export default function CategoryCards({
   }
 
   return (
-    <div className="flex gap-3 mb-5">
-      <CategoryCard
-        id="groceries"
-        emoji="🛒"
-        label="Groceries"
-        amount={groceryData.totalSpend}
-        entries={groceryData.totalEntries}
-        accentColor="#3660F9"
-        bgColor="#EEF2FF"
-        onClick={onGroceryClick}
-      />
-      <CategoryCard
-        id="general"
-        emoji="📋"
-        label="General"
-        amount={generalData.totalGeneralSpend}
-        entries={generalData.totalGeneralEntries}
-        accentColor="#7C3AED"
-        bgColor="#F5F3FF"
-        onClick={onGeneralClick}
-      />
-      <CategoryCard
-        id="trips"
-        emoji="�"
-        label="Trips"
-        amount={tripsData.totalTripSpend}
-        entries={tripsData.totalTripEntries}
-        accentColor="#3660F9"
-        bgColor="#EEF2FF"
-        onClick={onTripsClick}
-      />
-      {/* <CategoryCard
-        id="fuel"
-        emoji="⛽"
-        label="Fuel"
-        amount={1000}
-        entries={2}
-        accentColor="#3660F9"
-        bgColor="#F5F3FF"
-        onClick={onGeneralClick}
-      /> */}
+    <div className="flex flex-col gap-3 mb-5">
+      {/* Row 1: money-based tiles */}
+      <div className="flex gap-3">
+        <CategoryCard
+          id="groceries"
+          emoji="🛒"
+          label="Groceries"
+          amount={groceryData.totalSpend}
+          entries={groceryData.totalEntries}
+          accentColor="#3660F9"
+          bgColor="#EEF2FF"
+          onClick={onGroceryClick}
+        />
+        <CategoryCard
+          id="general"
+          emoji="📋"
+          label="General"
+          amount={generalData.totalGeneralSpend}
+          entries={generalData.totalGeneralEntries}
+          accentColor="#7C3AED"
+          bgColor="#F5F3FF"
+          onClick={onGeneralClick}
+        />
+        <CategoryCard
+          id="trips"
+          emoji="🚗"
+          label="Trips"
+          amount={tripsData.totalTripSpend}
+          entries={tripsData.totalTripEntries}
+          accentColor="#3660F9"
+          bgColor="#EEF2FF"
+          onClick={onTripsClick}
+        />
+      </div>
 
+      {/* Row 2: tracker tiles */}
+      <div className="flex gap-3">
+        <FilterTile
+          emoji="💧"
+          label="Water Filter"
+          nextDue={filterLogsData?.nextDue ?? null}
+          accentColor="#0891B2"
+          bgColor="#ECFEFF"
+          onClick={onFilterLogsClick}
+        />
+        {/* placeholder to keep the tile from stretching full-width */}
+        <div className="flex-1" />
+        <div className="flex-1" />
+      </div>
     </div>
   );
 }
